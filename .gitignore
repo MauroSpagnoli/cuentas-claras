@@ -1,0 +1,59 @@
+# === OS ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === IDE / editores ===
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+
+# === Java / Gradle (backend) ===
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+
+# === Android ===
+android/local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.keystore
+*.jks
+!debug.keystore
+
+# === Kotlin ===
+.kotlin/
+
+# === Secretos y configuración local ===
+.env
+.env.*
+!.env.example
+*.local
+application-local.yml
+application-local.properties
+secrets.properties
+
+# === Docker / datos locales ===
+pgdata/
+docker-compose.override.yml
+
+# === Logs y temporales ===
+*.tmp
+*.bak
+*.orig

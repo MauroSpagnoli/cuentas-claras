@@ -1,0 +1,868 @@
+openapi: 3.0.3
+info:
+  title: Cuentas Claras API
+  description: |
+    API de gastos compartidos: grupos, gastos con reparto flexible, balances y
+    plan de liquidación de deudas.
+
+    Convenciones: errores RFC 7807, paginación por cursor, idempotencia en POST
+    de escritura mediante `Idempotency-Key`. Importes en unidades mínimas (`amountMinor`).
+  version: 1.0.0
+  contact:
+    name: Mauro Spagnoli
+servers:
+  - url: https://api.cuentas-claras.app/api/v1
+    description: Producción
+  - url: http://localhost:8080/api/v1
+    description: Local
+tags:
+  - name: Auth
+    description: Registro, login y gestión de tokens
+  - name: Users
+    description: Perfil del usuario autenticado
+  - name: Groups
+    description: Grupos de gastos
+  - name: Members
+    description: Miembros, roles e invitaciones
+  - name: Expenses
+    description: Gastos y sus repartos
+  - name: Settlements
+    description: Pagos reales entre miembros
+  - name: Balances
+    description: Balances y plan de liquidación
+  - name: Activity
+    description: Historial de eventos del grupo
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registra un usuario
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '400': { $ref: '#/components/responses/Problem400' }
+        '409':
+          description: Email ya registrado
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Inicia sesión
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Tokens emitidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rota el refresh token y emite un nuevo access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200':
+          description: Nuevos tokens
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '401':
+          description: Refresh inválido, expirado o reutilizado
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoca el refresh token actual
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '204': { description: Sesión cerrada }
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Perfil del usuario autenticado
+      responses:
+        '200':
+          description: Perfil
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [Users]
+      summary: Actualiza el perfil
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateUserRequest' }
+      responses:
+        '200':
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/Problem400' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /groups:
+    get:
+      tags: [Groups]
+      summary: Lista los grupos del usuario
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Grupos del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Group' }
+                  nextCursor: { type: string, nullable: true }
+                  hasMore: { type: boolean }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Groups]
+      summary: Crea un grupo (el creador es OWNER)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateGroupRequest' }
+      responses:
+        '201':
+          description: Grupo creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '400': { $ref: '#/components/responses/Problem400' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /groups/{groupId}:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Groups]
+      summary: Detalle del grupo
+      responses:
+        '200':
+          description: Grupo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Groups]
+      summary: Actualiza nombre, descripción o archivado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateGroupRequest' }
+      responses:
+        '200':
+          description: Grupo actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [Groups]
+      summary: Borrado lógico del grupo (solo OWNER)
+      responses:
+        '204': { description: Borrado }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /groups/{groupId}/members:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Members]
+      summary: Lista los miembros del grupo
+      responses:
+        '200':
+          description: Miembros
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/GroupMember' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Members]
+      summary: Añade un miembro por email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddMemberRequest' }
+      responses:
+        '201':
+          description: Miembro añadido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupMember' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /groups/{groupId}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/UserId'
+    patch:
+      tags: [Members]
+      summary: Cambia el rol de un miembro
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMemberRequest' }
+      responses:
+        '200':
+          description: Miembro actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupMember' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    delete:
+      tags: [Members]
+      summary: Expulsa a un miembro o abandona el grupo
+      responses:
+        '204': { description: Eliminado }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: No se puede quitar al último OWNER
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /groups/{groupId}/invites:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    post:
+      tags: [Members]
+      summary: Genera un código/enlace de invitación
+      responses:
+        '201':
+          description: Invitación creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invite' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /invites/{code}/accept:
+    parameters:
+      - $ref: '#/components/parameters/Code'
+    post:
+      tags: [Members]
+      summary: Acepta una invitación
+      responses:
+        '200':
+          description: Grupo al que se ha unido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /groups/{groupId}/expenses:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Expenses]
+      summary: Lista gastos del grupo (cursor)
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+        - name: paidByUserId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Página de gastos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageExpense' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Expenses]
+      summary: Crea un gasto con reparto
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateExpenseRequest' }
+      responses:
+        '201':
+          description: Gasto creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+        '400': { $ref: '#/components/responses/Problem400' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: El reparto no cuadra con el total
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /expenses/{expenseId}:
+    parameters:
+      - $ref: '#/components/parameters/ExpenseId'
+    get:
+      tags: [Expenses]
+      summary: Detalle de un gasto
+      responses:
+        '200':
+          description: Gasto
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Expenses]
+      summary: Edita un gasto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateExpenseRequest' }
+      responses:
+        '200':
+          description: Gasto actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: El reparto no cuadra con el total
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    delete:
+      tags: [Expenses]
+      summary: Borrado lógico de un gasto
+      responses:
+        '204': { description: Borrado }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /groups/{groupId}/settlements:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Settlements]
+      summary: Lista pagos registrados
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Página de liquidaciones
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageSettlement' }
+    post:
+      tags: [Settlements]
+      summary: Registra un pago real
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSettlementRequest' }
+      responses:
+        '201':
+          description: Pago registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Settlement' }
+        '400': { $ref: '#/components/responses/Problem400' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /groups/{groupId}/balances:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Balances]
+      summary: Balances netos y deudas por pares
+      responses:
+        '200':
+          description: Balances
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BalancesResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /groups/{groupId}/settlement-plan:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Balances]
+      summary: Plan de liquidación sugerido (mínimo de transferencias)
+      responses:
+        '200':
+          description: Plan de liquidación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SettlementPlanResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /groups/{groupId}/activity:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Activity]
+      summary: Historial de eventos del grupo (paginado)
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Página de actividad
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageActivity' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    GroupId:
+      name: groupId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ExpenseId:
+      name: expenseId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Code:
+      name: code
+      in: path
+      required: true
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Cursor:
+      name: cursor
+      in: query
+      description: Cursor opaco devuelto por la respuesta anterior
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: Clave única por mutación para evitar duplicados en reintentos
+      schema: { type: string, maxLength: 128 }
+
+  responses:
+    Problem400:
+      description: Petición inválida
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Sin permiso sobre el recurso
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflicto de versión o estado
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Problem:
+      type: object
+      description: Error RFC 7807
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string, example: SPLIT_MISMATCH }
+        correlationId: { type: string }
+        errors:
+          type: array
+          items: { $ref: '#/components/schemas/ValidationError' }
+      required: [title, status]
+
+    ValidationError:
+      type: object
+      properties:
+        field: { type: string }
+        message: { type: string }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        defaultCurrency: { type: string, pattern: '^[A-Z]{3}$', default: EUR }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+
+    AuthTokens:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        tokenType: { type: string, default: Bearer }
+        expiresIn: { type: integer, description: Segundos de vida del access token }
+        user: { $ref: '#/components/schemas/User' }
+      required: [accessToken, refreshToken, expiresIn]
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        defaultCurrency: { type: string, pattern: '^[A-Z]{3}$' }
+        locale: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        defaultCurrency: { type: string, pattern: '^[A-Z]{3}$' }
+        locale: { type: string }
+
+    Group:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        inviteCode: { type: string, nullable: true }
+        memberCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+        version: { type: integer, format: int64 }
+
+    CreateGroupRequest:
+      type: object
+      required: [name, currency]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+
+    UpdateGroupRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, nullable: true, maxLength: 500 }
+        archived: { type: boolean }
+
+    GroupRole:
+      type: string
+      enum: [OWNER, ADMIN, MEMBER]
+
+    MemberStatus:
+      type: string
+      enum: [INVITED, ACTIVE, LEFT]
+
+    GroupMember:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        displayName: { type: string }
+        email: { type: string, format: email }
+        role: { $ref: '#/components/schemas/GroupRole' }
+        status: { $ref: '#/components/schemas/MemberStatus' }
+        joinedAt: { type: string, format: date-time, nullable: true }
+
+    AddMemberRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+        role: { $ref: '#/components/schemas/GroupRole' }
+
+    UpdateMemberRequest:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: '#/components/schemas/GroupRole' }
+
+    Invite:
+      type: object
+      properties:
+        code: { type: string }
+        url: { type: string, format: uri }
+        expiresAt: { type: string, format: date-time, nullable: true }
+
+    SplitType:
+      type: string
+      enum: [EQUAL, EXACT, PERCENTAGE, SHARES]
+
+    ExpenseShare:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        amountMinor: { type: integer, format: int64 }
+        percentage: { type: number, nullable: true }
+        weight: { type: number, nullable: true }
+
+    ShareInput:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string, format: uuid }
+        amountMinor: { type: integer, format: int64, nullable: true, description: 'Para EXACT' }
+        percentage: { type: number, nullable: true, description: 'Para PERCENTAGE' }
+        weight: { type: number, nullable: true, description: 'Para SHARES' }
+
+    Expense:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        groupId: { type: string, format: uuid }
+        description: { type: string }
+        amountMinor: { type: integer, format: int64 }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        paidByUserId: { type: string, format: uuid }
+        splitType: { $ref: '#/components/schemas/SplitType' }
+        category: { type: string, nullable: true }
+        expenseDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        version: { type: integer, format: int64 }
+        shares:
+          type: array
+          items: { $ref: '#/components/schemas/ExpenseShare' }
+
+    CreateExpenseRequest:
+      type: object
+      required: [description, amountMinor, paidByUserId, splitType, expenseDate, shares]
+      properties:
+        description: { type: string, minLength: 1, maxLength: 200 }
+        amountMinor: { type: integer, format: int64, minimum: 1 }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        paidByUserId: { type: string, format: uuid }
+        splitType: { $ref: '#/components/schemas/SplitType' }
+        category: { type: string, maxLength: 32 }
+        expenseDate: { type: string, format: date }
+        notes: { type: string, maxLength: 1000 }
+        shares:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ShareInput' }
+
+    UpdateExpenseRequest:
+      type: object
+      properties:
+        description: { type: string, minLength: 1, maxLength: 200 }
+        amountMinor: { type: integer, format: int64, minimum: 1 }
+        paidByUserId: { type: string, format: uuid }
+        splitType: { $ref: '#/components/schemas/SplitType' }
+        category: { type: string, nullable: true }
+        expenseDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        shares:
+          type: array
+          items: { $ref: '#/components/schemas/ShareInput' }
+        version: { type: integer, format: int64 }
+
+    Settlement:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        groupId: { type: string, format: uuid }
+        fromUserId: { type: string, format: uuid }
+        toUserId: { type: string, format: uuid }
+        amountMinor: { type: integer, format: int64 }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        settledOn: { type: string, format: date }
+        note: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    CreateSettlementRequest:
+      type: object
+      required: [fromUserId, toUserId, amountMinor, settledOn]
+      properties:
+        fromUserId: { type: string, format: uuid }
+        toUserId: { type: string, format: uuid }
+        amountMinor: { type: integer, format: int64, minimum: 1 }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        settledOn: { type: string, format: date }
+        note: { type: string, maxLength: 500 }
+
+    MemberBalance:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        displayName: { type: string }
+        netMinor: { type: integer, format: int64, description: 'Positivo = le deben; negativo = debe' }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+
+    PairwiseDebt:
+      type: object
+      properties:
+        fromUserId: { type: string, format: uuid }
+        toUserId: { type: string, format: uuid }
+        amountMinor: { type: integer, format: int64 }
+
+    BalancesResponse:
+      type: object
+      properties:
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/MemberBalance' }
+        pairs:
+          type: array
+          items: { $ref: '#/components/schemas/PairwiseDebt' }
+
+    SettlementStep:
+      type: object
+      properties:
+        fromUserId: { type: string, format: uuid }
+        toUserId: { type: string, format: uuid }
+        amountMinor: { type: integer, format: int64 }
+
+    SettlementPlanResponse:
+      type: object
+      properties:
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        algorithm: { type: string, enum: [GREEDY, EXACT] }
+        transactionCount: { type: integer }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/SettlementStep' }
+
+    ActivityItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string, enum: [EXPENSE_CREATED, EXPENSE_UPDATED, EXPENSE_DELETED, SETTLEMENT_CREATED, MEMBER_JOINED, MEMBER_LEFT] }
+        actorUserId: { type: string, format: uuid }
+        summary: { type: string }
+        amountMinor: { type: integer, format: int64, nullable: true }
+        occurredAt: { type: string, format: date-time }
+
+    PageExpense:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Expense' }
+        nextCursor: { type: string, nullable: true }
+        hasMore: { type: boolean }
+
+    PageSettlement:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Settlement' }
+        nextCursor: { type: string, nullable: true }
+        hasMore: { type: boolean }
+
+    PageActivity:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ActivityItem' }
+        nextCursor: { type: string, nullable: true }
+        hasMore: { type: boolean }

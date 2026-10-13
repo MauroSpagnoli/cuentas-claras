@@ -1,0 +1,10 @@
+# Perfil de test para integracion con PostgreSQL (Testcontainers).
+# La URL/usuario/password los inyecta @DynamicPropertySource.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

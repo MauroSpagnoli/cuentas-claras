@@ -7,7 +7,11 @@ Es un proyecto **full-stack** pensado como pieza de portfolio:
 - 📱 **Cliente Android**: Kotlin + Jetpack Compose + Hilt + Room + Retrofit + MVI.
 - ☕ **Backend**: Java + Spring Boot + PostgreSQL + JWT, con contrato **OpenAPI** como fuente de verdad.
 
-> **Estado: DISEÑO.** Este repositorio contiene únicamente documentación de arquitectura, modelo de datos, contrato de API y plan por fases. **No hay código de implementación todavía** (decisión consciente para no bloquear el diseño).
+> **Estado: diseño completo + Fase 1 (backend) implementada.** El repositorio
+> contiene la documentación de arquitectura, modelo de datos, contrato de API y
+> plan por fases, y ya el **backend de autenticación** en `backend/`
+> (Spring Boot, JWT, Flyway, Swagger y tests). El cliente Android llegará en
+> fases posteriores.
 
 ---
 
@@ -67,6 +71,19 @@ cuentas-claras/
 
 ---
 
+## Progreso
+
+| Fase | Estado |
+|---|---|
+| **1 · Backend base + autenticación** | ✅ Implementada — ver [`backend/README.md`](backend/README.md) |
+| 2 · Grupos y miembros | ⏳ Pendiente |
+| 3 · Gastos y repartos | ⏳ Pendiente |
+| 4 · Balances y liquidación | ⏳ Pendiente |
+| 5 · Android: base + auth | ⏳ Pendiente |
+| 6+ · Resto de features Android | ⏳ Pendiente |
+
+---
+
 ## Documentación
 
 | Documento | Contenido |
@@ -94,4 +111,4 @@ cuentas-claras/
 
 ---
 
-*Proyecto de portfolio. Sin código todavía: primero el diseño.*
+*Proyecto de portfolio. Diseño primero, implementación por fases.*

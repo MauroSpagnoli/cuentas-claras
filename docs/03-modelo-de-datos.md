@@ -30,16 +30,18 @@ erDiagram
 | Columna | Tipo | Restricciones |
 |---|---|---|
 | `id` | uuid | PK |
-| `email` | citext | UNIQUE, NOT NULL |
+| `email` | varchar(255) | UNIQUE, NOT NULL |
 | `password_hash` | text | NOT NULL |
 | `display_name` | text | NOT NULL |
-| `default_currency` | char(3) | NOT NULL, default `'EUR'` |
+| `default_currency` | varchar(3) | NOT NULL, default `'EUR'` |
 | `locale` | varchar(10) | NULL |
 | `created_at` | timestamptz | NOT NULL |
 | `updated_at` | timestamptz | NOT NULL |
 | `version` | bigint | NOT NULL, default 0 |
 
-> `citext` requiere `CREATE EXTENSION citext;` (lo gestiona la migración Flyway inicial).
+> **Email sin `citext`**: el email se **normaliza a minúsculas en la aplicación**
+> antes de guardarlo o buscarlo, de modo que la unicidad es case-insensitive sin
+> depender de la extensión `citext` (implementado así en `V1__init_users.sql`).
 
 ### 3.2 `groups`
 | Columna | Tipo | Restricciones |

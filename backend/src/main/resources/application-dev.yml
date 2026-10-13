@@ -1,0 +1,23 @@
+# Perfil de desarrollo: H2 en memoria, sin Docker.
+# Arranque rapido: ./mvnw spring-boot:run
+# (el esquema lo crea Hibernate; las migraciones Flyway se usan en Postgres/docker)
+spring:
+  datasource:
+    url: jdbc:h2:mem:cuentas;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+logging:
+  level:
+    app.cuentasclaras: DEBUG

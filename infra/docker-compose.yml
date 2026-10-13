@@ -1,0 +1,36 @@
+# Levanta PostgreSQL + la API.
+# Uso (desde la raiz del repo):
+#   docker compose -f infra/docker-compose.yml up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cuentas_claras
+      POSTGRES_USER: cuentas
+      POSTGRES_PASSWORD: cuentas
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cuentas -d cuentas_claras"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cuentas_claras
+      SPRING_DATASOURCE_USERNAME: cuentas
+      SPRING_DATASOURCE_PASSWORD: cuentas
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

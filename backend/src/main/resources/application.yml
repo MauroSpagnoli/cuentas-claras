@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: cuentas-claras-api
+  profiles:
+    # Perfil por defecto para desarrollo local sin dependencias externas (H2 en memoria)
+    default: dev
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  jwt:
+    issuer: cuentas-claras
+    access-token-ttl: 15m
+    refresh-token-ttl: 30d
+    # private-key / public-key: PEM opcionales. Si no se definen, se genera un par
+    # RSA efímero al arrancar (solo válido para desarrollo local).

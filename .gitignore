@@ -14,11 +14,13 @@ Desktop.ini
 .classpath
 *.swp
 
-# === Java / Gradle (backend) ===
+# === Java / Gradle / Maven (backend) ===
 .gradle/
 build/
+target/
 out/
 !gradle/wrapper/gradle-wrapper.jar
+!**/.mvn/wrapper/maven-wrapper.properties
 *.class
 *.log
 hs_err_pid*

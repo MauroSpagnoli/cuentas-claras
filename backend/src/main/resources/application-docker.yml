@@ -1,0 +1,13 @@
+# Perfil para docker-compose / produccion: PostgreSQL + Flyway.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cuentas_claras}
+    username: ${SPRING_DATASOURCE_USERNAME:cuentas}
+    password: ${SPRING_DATASOURCE_PASSWORD:cuentas}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

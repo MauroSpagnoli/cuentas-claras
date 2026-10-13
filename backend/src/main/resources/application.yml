@@ -31,3 +31,6 @@ app:
     refresh-token-ttl: 30d
     # private-key / public-key: PEM opcionales. Si no se definen, se genera un par
     # RSA efímero al arrancar (solo válido para desarrollo local).
+  invite:
+    # Base del enlace de invitacion: {base-url}/{code}
+    base-url: https://cuentas-claras.app/join

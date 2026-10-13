@@ -30,16 +30,16 @@ Roadmap incremental. Cada fase termina con **algo verificable** y criterios de a
 
 ---
 
-## Fase 2 · Grupos y miembros
+## Fase 2 · Grupos y miembros (completada)
 **Objetivo:** espacios compartidos con roles e invitaciones.
 **Entregables:**
-- `V3__groups.sql`, `V4__group_members.sql`.
-- CRUD de grupos, listado "mis grupos", miembros, roles, invitaciones.
-- `GroupAccessGuard` (autorización por recurso).
+- [x] `V3__groups.sql`, `V4__group_members.sql`.
+- [x] CRUD de grupos, listado "mis grupos" (paginado por cursor), miembros, roles, invitaciones.
+- [x] `GroupAccessGuard` (autorización por recurso).
 **Criterios de aceptación:**
-- Solo miembros ven el grupo; solo owner/admin gestionan.
-- Un no-miembro recibe `403 NOT_MEMBER`.
-- No se puede quitar al último `OWNER`.
+- [x] Solo miembros ven el grupo; solo owner/admin gestionan.
+- [x] Un no-miembro recibe `403 NOT_MEMBER`.
+- [x] No se puede quitar al último `OWNER` (`409 LAST_OWNER`).
 
 ---
 

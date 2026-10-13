@@ -7,11 +7,11 @@ Es un proyecto **full-stack** pensado como pieza de portfolio:
 - 📱 **Cliente Android**: Kotlin + Jetpack Compose + Hilt + Room + Retrofit + MVI.
 - ☕ **Backend**: Java + Spring Boot + PostgreSQL + JWT, con contrato **OpenAPI** como fuente de verdad.
 
-> **Estado: diseño completo + Fase 1 (backend) implementada.** El repositorio
+> **Estado: diseño completo + Fases 1 y 2 (backend) implementadas.** El repositorio
 > contiene la documentación de arquitectura, modelo de datos, contrato de API y
-> plan por fases, y ya el **backend de autenticación** en `backend/`
-> (Spring Boot, JWT, Flyway, Swagger y tests). El cliente Android llegará en
-> fases posteriores.
+> plan por fases, y ya el **backend de autenticación, grupos y miembros** en
+> `backend/` (Spring Boot, JWT, Flyway, Swagger y tests). El cliente Android
+> llegará en fases posteriores.
 
 ---
 
@@ -46,7 +46,7 @@ A diferencia de un CRUD, aquí hay sustancia técnica real y verificable:
 ## Stack
 
 **Backend**
-`Java 17` · `Spring Boot 3.x` · `Spring Web` · `Spring Security + JWT` · `Spring Data JPA` · `PostgreSQL` · `Flyway` · `MapStruct` · `Bean Validation` · `springdoc-openapi` · `Docker` · `JUnit 5 + Mockito + Testcontainers`
+`Java 17` · `Spring Boot 3.x` · `Spring Web` · `Spring Security + JWT` · `Spring Data JPA` · `PostgreSQL` · `Flyway` · `Bean Validation` · `springdoc-openapi` · `Docker` · `JUnit 5 + Mockito + Testcontainers`
 
 **Android**
 `Kotlin` · `Jetpack Compose (Material 3)` · `Hilt` · `Room` · `Retrofit + OkHttp + Kotlinx Serialization` · `Coroutines/Flow` · `Navigation Compose` · `Paging 3` · `WorkManager` · `Coil` · `MockK + Turbine + MockWebServer + Robolectric`
@@ -76,7 +76,7 @@ cuentas-claras/
 | Fase | Estado |
 |---|---|
 | **1 · Backend base + autenticación** | ✅ Implementada — ver [`backend/README.md`](backend/README.md) |
-| 2 · Grupos y miembros | ⏳ Pendiente |
+| **2 · Grupos y miembros** | ✅ Implementada — CRUD de grupos, roles, invitaciones y `GroupAccessGuard` |
 | 3 · Gastos y repartos | ⏳ Pendiente |
 | 4 · Balances y liquidación | ⏳ Pendiente |
 | 5 · Android: base + auth | ⏳ Pendiente |

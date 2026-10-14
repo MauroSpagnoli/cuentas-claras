@@ -3,6 +3,7 @@ package app.cuentasclaras.application.settlement;
 import app.cuentasclaras.api.dto.CreateSettlementRequest;
 import app.cuentasclaras.api.error.ApiException;
 import app.cuentasclaras.api.error.ErrorCode;
+import app.cuentasclaras.application.activity.ActivityRecorder;
 import app.cuentasclaras.application.common.CursorCodec;
 import app.cuentasclaras.application.group.GroupAccessGuard;
 import app.cuentasclaras.domain.model.Group;
@@ -33,12 +34,14 @@ public class SettlementService {
     private final SettlementRepository settlements;
     private final GroupMemberRepository members;
     private final GroupAccessGuard guard;
+    private final ActivityRecorder activity;
 
     public SettlementService(SettlementRepository settlements, GroupMemberRepository members,
-                             GroupAccessGuard guard) {
+                             GroupAccessGuard guard, ActivityRecorder activity) {
         this.settlements = settlements;
         this.members = members;
         this.guard = guard;
+        this.activity = activity;
     }
 
     @Transactional
@@ -58,7 +61,9 @@ public class SettlementService {
         Settlement settlement = new Settlement(
                 UUID.randomUUID(), groupId, request.fromUserId(), request.toUserId(), request.amountMinor(),
                 currency, request.settledOn(), trimToNull(request.note()), userId, now, null);
-        return settlements.save(settlement);
+        Settlement saved = settlements.save(settlement);
+        activity.settlementCreated(groupId, userId, saved.amountMinor(), now);
+        return saved;
     }
 
     @Transactional(readOnly = true)

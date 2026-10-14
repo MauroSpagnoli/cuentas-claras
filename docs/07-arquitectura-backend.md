@@ -17,7 +17,8 @@ backend/src/main/java/app/cuentasclaras/
 │   ├── idempotency/
 │   ├── common/              # CursorCodec
 │   ├── balance/
-│   └── settlement/
+│   ├── settlement/
+│   └── activity/            # ActivityRecorder (escribe) + ActivityService (feed)
 ├── domain/                  # lógica pura, sin Spring
 │   ├── model/               # User, Group, Expense, Money, Split...
 │   ├── service/             # SplitCalculator, SettlementPlanner

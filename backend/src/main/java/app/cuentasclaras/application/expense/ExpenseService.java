@@ -5,6 +5,7 @@ import app.cuentasclaras.api.dto.ExpenseShareInput;
 import app.cuentasclaras.api.dto.UpdateExpenseRequest;
 import app.cuentasclaras.api.error.ApiException;
 import app.cuentasclaras.api.error.ErrorCode;
+import app.cuentasclaras.application.activity.ActivityRecorder;
 import app.cuentasclaras.application.common.CursorCodec;
 import app.cuentasclaras.application.group.GroupAccessGuard;
 import app.cuentasclaras.domain.model.Expense;
@@ -49,13 +50,15 @@ public class ExpenseService {
     private final ExpenseShareRepository shares;
     private final GroupMemberRepository members;
     private final GroupAccessGuard guard;
+    private final ActivityRecorder activity;
 
     public ExpenseService(ExpenseRepository expenses, ExpenseShareRepository shares,
-                          GroupMemberRepository members, GroupAccessGuard guard) {
+                          GroupMemberRepository members, GroupAccessGuard guard, ActivityRecorder activity) {
         this.expenses = expenses;
         this.shares = shares;
         this.members = members;
         this.guard = guard;
+        this.activity = activity;
     }
 
     @Transactional
@@ -79,6 +82,7 @@ public class ExpenseService {
                 trimToNull(request.notes()), userId, now, now, null, 0L);
         Expense saved = expenses.save(expense);
         List<ExpenseShare> shareEntities = persistShares(saved.id(), resolved, now);
+        activity.expenseCreated(groupId, userId, saved.description(), saved.amountMinor(), now);
         return new ExpenseDetail(saved, shareEntities);
     }
 
@@ -158,6 +162,7 @@ public class ExpenseService {
 
         shares.deleteByExpenseId(saved.id());
         List<ExpenseShare> shareEntities = persistShares(saved.id(), resolved, now);
+        activity.expenseUpdated(current.groupId(), userId, saved.description(), saved.amountMinor(), now);
         return new ExpenseDetail(saved, shareEntities);
     }
 
@@ -172,6 +177,7 @@ public class ExpenseService {
                 current.paidByUserId(), current.splitType(), current.category(), current.expenseDate(),
                 current.notes(), current.createdBy(), current.createdAt(), now, now, current.version());
         expenses.save(deleted);
+        activity.expenseDeleted(current.groupId(), userId, deleted.description(), deleted.amountMinor(), now);
     }
 
     private Expense requireExpense(UUID expenseId) {

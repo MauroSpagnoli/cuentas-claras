@@ -64,10 +64,12 @@ Roadmap incremental. Cada fase termina con **algo verificable** y criterios de a
 - [x] `SettlementPlanner` (greedy, y exacto para `n ≤ 12`).
 - [x] Endpoints `GET /balances` y `GET /settlement-plan`.
 - [x] Registro y listado de `settlements` (`V8__settlements.sql`, `Idempotency-Key` en el POST).
+- [x] Feed de actividad del grupo (`GET /groups/{id}/activity`, `V9__activity_events.sql`, UC-08).
 **Criterios de aceptación:**
 - [x] `Σ netos = 0` en todos los casos de prueba.
 - [x] El plan salda todas las deudas (se puede verificar aplicándolo).
 - [x] Tests unitarios y de propiedad (random) del plan.
+- [x] El feed registra gastos, pagos y altas/bajas de miembros, ordenado y paginado por cursor.
 
 ---
 

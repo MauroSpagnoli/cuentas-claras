@@ -3,6 +3,7 @@ package app.cuentasclaras.application.group;
 import app.cuentasclaras.api.dto.AddMemberRequest;
 import app.cuentasclaras.api.error.ApiException;
 import app.cuentasclaras.api.error.ErrorCode;
+import app.cuentasclaras.application.activity.ActivityRecorder;
 import app.cuentasclaras.domain.model.GroupMember;
 import app.cuentasclaras.domain.model.GroupMemberView;
 import app.cuentasclaras.domain.model.GroupRole;
@@ -28,11 +29,14 @@ public class GroupMemberService {
     private final GroupMemberRepository members;
     private final UserRepository users;
     private final GroupAccessGuard guard;
+    private final ActivityRecorder activity;
 
-    public GroupMemberService(GroupMemberRepository members, UserRepository users, GroupAccessGuard guard) {
+    public GroupMemberService(GroupMemberRepository members, UserRepository users, GroupAccessGuard guard,
+                              ActivityRecorder activity) {
         this.members = members;
         this.users = users;
         this.guard = guard;
+        this.activity = activity;
     }
 
     @Transactional(readOnly = true)
@@ -70,11 +74,11 @@ public class GroupMemberService {
             saved = members.save(new GroupMember(UUID.randomUUID(), groupId, target.id(), role,
                     MemberStatus.ACTIVE, now, now));
         }
+        activity.memberJoined(groupId, requesterId, target.id(), now);
 
         return new GroupMemberView(target.id(), target.displayName(), target.email(), saved.role(),
                 saved.status(), saved.joinedAt());
     }
-
     @Transactional
     public GroupMemberView changeRole(UUID groupId, UUID requesterId, UUID targetUserId, GroupRole newRole) {
         guard.requireGroup(groupId);
@@ -118,6 +122,7 @@ public class GroupMemberService {
 
         members.save(new GroupMember(target.id(), groupId, targetUserId, target.role(), MemberStatus.LEFT,
                 target.joinedAt(), target.createdAt()));
+        activity.memberLeft(groupId, requesterId, targetUserId, Instant.now());
     }
 
     private GroupMember requireMembership(UUID groupId, UUID userId) {

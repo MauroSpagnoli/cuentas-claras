@@ -9,9 +9,11 @@ Es un proyecto **full-stack** pensado como pieza de portfolio:
 
 > **Estado: diseño completo + Fases 1, 2, 3 y 4 (backend) implementadas.** El repositorio
 > contiene la documentación de arquitectura, modelo de datos, contrato de API y
-> plan por fases, y ya el **backend de autenticación, grupos, miembros, gastos con
-> reparto, balances y plan de liquidación** en `backend/` (Spring Boot, JWT, Flyway,
-> Swagger y tests). El cliente Android llegará en fases posteriores.
+> plan por fases, y ya el **backend completo del MVP** (autenticación, grupos, miembros,
+> gastos con reparto, balances, plan de liquidación, pagos y feed de actividad) en
+> `backend/` (Spring Boot, JWT, Flyway, Swagger y tests). El contrato `openapi.yaml`
+> queda **cubierto al 100 %** por la implementación. El cliente Android llegará en
+> fases posteriores.
 
 ---
 
@@ -78,7 +80,7 @@ cuentas-claras/
 | **1 · Backend base + autenticación** | ✅ Implementada — ver [`backend/README.md`](backend/README.md) |
 | **2 · Grupos y miembros** | ✅ Implementada — CRUD de grupos, roles, invitaciones y `GroupAccessGuard` |
 | **3 · Gastos y repartos** | ✅ Implementada — 4 tipos de reparto, `SplitCalculator`, cursor + filtros e idempotencia |
-| **4 · Balances y liquidación** | ✅ Implementada — `BalanceCalculator`, `SettlementPlanner` (exacto/voraz), balances por pares, plan y registro de pagos |
+| **4 · Balances y liquidación** | ✅ Implementada — `BalanceCalculator`, `SettlementPlanner` (exacto/voraz), balances por pares, plan, registro de pagos y feed de actividad |
 | 5 · Android: base + auth | ⏳ Pendiente |
 | 6+ · Resto de features Android | ⏳ Pendiente |
 

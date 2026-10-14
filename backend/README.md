@@ -26,9 +26,12 @@ liquidaciones construida con **Spring Boot 3 (Java 17)**. Fases 1, 2, 3 y 4 del
   participantes y una heurística voraz por encima; reporta el algoritmo usado (`EXACT`/`GREEDY`).
 - **Pagos** (`GET/POST /groups/{id}/settlements`): registro de liquidaciones reales con
   `Idempotency-Key` opcional; los balances pasan a reflejar los pagos.
+- **Feed de actividad** del grupo (`GET /groups/{id}/activity`, paginado por cursor): registra
+  altas/ediciones/borrados de gastos, pagos y altas/bajas de miembros. Se escribe en la misma
+  transacción que el cambio de negocio (`ActivityRecorder`, `V9__activity_events.sql`).
 - Access token **JWT RS256** (15 min) + refresh token **opaco** hasheado (30 días).
 - Errores **RFC 7807**, `X-Request-Id`, Swagger UI y Actuator.
-- Migraciones **Flyway** (`V1`–`V8`) para PostgreSQL.
+- Migraciones **Flyway** (`V1`–`V9`) para PostgreSQL.
 - Tests: unitarios, flujos HTTP completos (H2) e integración con PostgreSQL (Testcontainers).
 
 ## Requisitos
@@ -71,8 +74,10 @@ docker compose -f infra/docker-compose.yml up --build
 ```
 
 - `TokenServiceTest`, `SplitCalculatorTest`, `BalanceCalculatorTest`, `SettlementPlannerTest`,
-  `AuthApiH2Test`, `GroupApiH2Test`, `ExpenseApiH2Test` y `BalanceAndSettlementApiH2Test`
-  corren **siempre** (sin Docker).
+  `AuthApiH2Test`, `GroupApiH2Test`, `ExpenseApiH2Test`, `BalanceAndSettlementApiH2Test` y
+  `ActivityApiH2Test` corren **siempre** (sin Docker).
+- `MigrationSmokeH2Test` aplica **todo** el historial Flyway sobre H2 (modo PostgreSQL) y deja
+  que Hibernate (`ddl-auto=validate`) compruebe que las entidades coinciden con las migraciones.
 - `AuthApiPostgresTest` se **omite** automáticamente si no hay Docker.
 
 ## Endpoints
@@ -105,6 +110,7 @@ docker compose -f infra/docker-compose.yml up --build
 | GET | `/api/v1/groups/{groupId}/settlement-plan` | Plan de liquidación (mín. transferencias) |
 | GET | `/api/v1/groups/{groupId}/settlements` | Lista pagos registrados (cursor) |
 | POST | `/api/v1/groups/{groupId}/settlements` | Registra un pago (`Idempotency-Key` opcional) |
+| GET | `/api/v1/groups/{groupId}/activity` | Feed de actividad del grupo (cursor) |
 
 Reglas de autorización (Fase 2): un no-miembro recibe `403 NOT_MEMBER`;
 rol insuficiente → `403 INSUFFICIENT_ROLE`; no se puede degradar ni quitar
@@ -122,6 +128,11 @@ pero el pagador y el receptor deben ser miembros activos y distintos
 (`422 INVALID_PARTICIPANT` / `400`); la moneda debe coincidir con la del grupo.
 El plan de liquidación es una **sugerencia**: solo los pagos persistidos cambian
 los balances.
+
+Reglas de actividad (Fase 4, UC-08): el feed solo lo ven los miembros
+(`403 NOT_MEMBER` para el resto) y se pagina por cursor. Los eventos se generan
+solos al crear/editar/borrar gastos, registrar pagos y unirse o salir miembros;
+no hay endpoint para escribirlos a mano.
 
 ### Ejemplo
 
@@ -148,7 +159,7 @@ app:
 ```
 src/main/java/app/cuentasclaras/
 ├── api/            # controllers, DTOs y manejo de errores
-├── application/    # casos de uso (auth, user, group, expense, balance, settlement, idempotency) y seguridad
+├── application/    # casos de uso (auth, user, group, expense, balance, settlement, activity, idempotency) y seguridad
 ├── domain/         # modelos y puertos de repositorio (sin framework)
 └── infrastructure/ # JPA, seguridad (JWT) y configuración
 ```

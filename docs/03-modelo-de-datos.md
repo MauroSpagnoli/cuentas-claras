@@ -9,9 +9,11 @@ erDiagram
     USERS ||--o{ EXPENSE_SHARES : "debe"
     USERS ||--o{ SETTLEMENTS : "origen/destino"
     USERS ||--o{ REFRESH_TOKENS : "tiene"
+    USERS ||--o{ ACTIVITY_EVENTS : "genera"
     GROUPS ||--o{ GROUP_MEMBERS : "incluye"
     GROUPS ||--o{ EXPENSES : "contiene"
     GROUPS ||--o{ SETTLEMENTS : "registra"
+    GROUPS ||--o{ ACTIVITY_EVENTS : "historial"
     EXPENSES ||--o{ EXPENSE_SHARES : "se reparte en"
 ```
 
@@ -164,6 +166,30 @@ Pagos reales entre miembros (una persona le devuelve dinero a otra).
 > unicidad real del mecanismo es `(user_id, key)`. El flujo es *reservar →
 > ejecutar → completar*: si la operación falla se libera la reserva para poder
 > reintentar, y si llega la misma clave con otro cuerpo se responde `409`.
+
+
+### 3.9 `activity_events`
+Historial inmutable de eventos del grupo (UC-08). Cada fila resume una acción
+(alta/edición/borrado de gasto, pago registrado, alta/baja de miembro). El
+`summary` es texto legible ya resuelto (incluye el nombre del actor) para que el
+feed se lea sin *joins*.
+
+| Columna | Tipo | Restricciones |
+|---|---|---|
+| `id` | uuid | PK |
+| `group_id` | uuid | FK → `groups.id`, ON DELETE CASCADE |
+| `type` | varchar(32) | `EXPENSE_CREATED` \| `EXPENSE_UPDATED` \| `EXPENSE_DELETED` \| `SETTLEMENT_CREATED` \| `MEMBER_JOINED` \| `MEMBER_LEFT` |
+| `actor_user_id` | uuid | FK → `users.id` |
+| `summary` | varchar(300) | NOT NULL |
+| `amount_minor` | bigint | NULL (nulo en eventos de miembro) |
+| `occurred_at` | timestamptz | NOT NULL, por defecto `now()` |
+
+**Índices**
+- `INDEX (group_id, occurred_at DESC, id DESC)` — feed paginado por cursor.
+- `INDEX (actor_user_id)`.
+
+> Los eventos se escriben en la **misma transacción** que el cambio de negocio
+> (`ActivityRecorder`), de modo que nunca hay un evento sin su hecho ni al revés.
 
 
 ## 4. Balances: ¿tabla o cálculo?

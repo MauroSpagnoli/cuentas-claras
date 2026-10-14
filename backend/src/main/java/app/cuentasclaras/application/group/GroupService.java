@@ -4,6 +4,7 @@ import app.cuentasclaras.api.dto.CreateGroupRequest;
 import app.cuentasclaras.api.dto.UpdateGroupRequest;
 import app.cuentasclaras.api.error.ApiException;
 import app.cuentasclaras.api.error.ErrorCode;
+import app.cuentasclaras.application.activity.ActivityRecorder;
 import app.cuentasclaras.application.common.CursorCodec;
 import app.cuentasclaras.domain.model.Group;
 import app.cuentasclaras.domain.model.GroupMember;
@@ -38,14 +39,17 @@ public class GroupService {
     private final GroupAccessGuard guard;
     private final InviteCodeGenerator inviteCodes;
     private final InviteProperties inviteProperties;
+    private final ActivityRecorder activity;
 
     public GroupService(GroupRepository groups, GroupMemberRepository members, GroupAccessGuard guard,
-                        InviteCodeGenerator inviteCodes, InviteProperties inviteProperties) {
+                        InviteCodeGenerator inviteCodes, InviteProperties inviteProperties,
+                        ActivityRecorder activity) {
         this.groups = groups;
         this.members = members;
         this.guard = guard;
         this.inviteCodes = inviteCodes;
         this.inviteProperties = inviteProperties;
+        this.activity = activity;
     }
 
     @Transactional
@@ -67,6 +71,7 @@ public class GroupService {
         Group saved = groups.save(group);
         members.save(new GroupMember(UUID.randomUUID(), saved.id(), userId, GroupRole.OWNER,
                 MemberStatus.ACTIVE, now, now));
+        activity.memberJoined(saved.id(), userId, userId, now);
         return new GroupWithCount(saved, 1);
     }
 
@@ -169,6 +174,7 @@ public class GroupService {
             members.save(new GroupMember(UUID.randomUUID(), group.id(), userId, GroupRole.MEMBER,
                     MemberStatus.ACTIVE, now, now));
         }
+        activity.memberJoined(group.id(), userId, userId, now);
         return new GroupWithCount(group, members.countMembers(group.id()));
     }
 

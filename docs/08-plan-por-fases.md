@@ -43,17 +43,17 @@ Roadmap incremental. Cada fase termina con **algo verificable** y criterios de a
 
 ---
 
-## Fase 3 · Gastos y repartos
+## Fase 3 · Gastos y repartos (completada)
 **Objetivo:** registrar y listar gastos con los 4 tipos de reparto.
 **Entregables:**
-- `V5__expenses.sql`, `V6__expense_shares.sql` (+ restricción de invariante).
-- `SplitCalculator` en `domain` (EQUAL/EXACT/PERCENTAGE/SHARES).
-- CRUD de gastos + listado paginado por cursor con filtros.
-- Idempotencia en `POST /expenses`.
+- [x] `V5__expenses.sql`, `V6__expense_shares.sql`, `V7__idempotency_keys.sql`.
+- [x] `SplitCalculator` en `domain` (EQUAL/EXACT/PERCENTAGE/SHARES) + `SplitValidationException`.
+- [x] CRUD de gastos + listado paginado por cursor con filtros (`from`, `to`, `paidByUserId`, `category`).
+- [x] Idempotencia en `POST /expenses` (`Idempotency-Key`: reservar → ejecutar → completar).
 **Criterios de aceptación:**
-- `Σ share_minor = amount_minor` siempre; violaciones → `422`.
-- Reintentar un `POST` con la misma `Idempotency-Key` no duplica el gasto.
-- Golden tests del reparto (incluido el reparto de resto) en verde.
+- [x] `Σ share_minor = amount_minor` siempre; violaciones → `422` (`SPLIT_MISMATCH` / `PERCENTAGE_SUM`).
+- [x] Reintentar un `POST` con la misma `Idempotency-Key` no duplica el gasto (y `409` si cambia el cuerpo).
+- [x] Golden tests del reparto (incluido el reparto de resto) en verde.
 
 ---
 

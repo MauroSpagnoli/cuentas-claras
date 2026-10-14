@@ -148,15 +148,23 @@ Pagos reales entre miembros (una persona le devuelve dinero a otra).
 ### 3.8 `idempotency_keys`
 | Columna | Tipo | Restricciones |
 |---|---|---|
-| `key` | text | PK |
-| `user_id` | uuid | FK → `users.id` |
-| `endpoint` | text | NOT NULL |
-| `request_hash` | text | NOT NULL |
-| `response_status` | int | NULL |
-| `response_body` | jsonb | NULL |
+| `id` | uuid | PK |
+| `user_id` | uuid | FK → `users.id`, ON DELETE CASCADE |
+| `key` | varchar(128) | NOT NULL |
+| `endpoint` | varchar(255) | NOT NULL |
+| `request_hash` | varchar(64) | NOT NULL — SHA-256 del cuerpo |
+| `response_status` | int | NULL mientras la operación está en curso |
+| `response_body` | varchar(20000) | NULL — respuesta serializada para repetirla |
 | `created_at` | timestamptz | NOT NULL |
 
-**Índice:** `UNIQUE (user_id, key)`; purga de claves de más de 24 h.
+**Restricción:** `UNIQUE (user_id, key)`; purga de claves de más de 24 h.
+
+> **PK `id` en vez de `key`**: la clave la genera el cliente y podría repetirse
+> entre usuarios distintos; con `key` como PK esas peticiones chocarían. La
+> unicidad real del mecanismo es `(user_id, key)`. El flujo es *reservar →
+> ejecutar → completar*: si la operación falla se libera la reserva para poder
+> reintentar, y si llega la misma clave con otro cuerpo se responde `409`.
+
 
 ## 4. Balances: ¿tabla o cálculo?
 

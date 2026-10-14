@@ -1,7 +1,7 @@
-# Cuentas Claras · Backend (Fases 1-2)
+# Cuentas Claras · Backend (Fases 1-3)
 
-API REST de autenticación, perfil, grupos y miembros construida con
-**Spring Boot 3 (Java 17)**. Fases 1 y 2 del [plan por fases](../docs/08-plan-por-fases.md).
+API REST de autenticación, perfil, grupos, miembros y gastos construida con
+**Spring Boot 3 (Java 17)**. Fases 1, 2 y 3 del [plan por fases](../docs/08-plan-por-fases.md).
 
 ## Qué incluye
 
@@ -12,9 +12,15 @@ API REST de autenticación, perfil, grupos y miembros construida con
 - **Invitaciones** por código/enlace (`POST /groups/{id}/invites`, `POST /invites/{code}/accept`).
 - **`GroupAccessGuard`**: autorización por recurso (miembro mínimo, gestor, owner) y la
   invariante "el grupo conserva al menos un OWNER".
+- **Gastos con reparto**: los 4 tipos (`EQUAL`, `EXACT`, `PERCENTAGE`, `SHARES`) resueltos
+  por `SplitCalculator` (dominio puro) garantizando `Σ shareMinor = amountMinor`; reparto
+  de resto determinista.
+- **Listado de gastos** paginado por cursor con filtros `from`, `to`, `paidByUserId`, `category`.
+- **Idempotencia** en `POST /expenses` vía cabecera `Idempotency-Key` (reservar → ejecutar →
+  completar): un reintento no duplica el gasto y un cuerpo distinto con la misma clave da `409`.
 - Access token **JWT RS256** (15 min) + refresh token **opaco** hasheado (30 días).
 - Errores **RFC 7807**, `X-Request-Id`, Swagger UI y Actuator.
-- Migraciones **Flyway** (`V1`–`V4`) para PostgreSQL.
+- Migraciones **Flyway** (`V1`–`V7`) para PostgreSQL.
 - Tests: unitarios, flujos HTTP completos (H2) e integración con PostgreSQL (Testcontainers).
 
 ## Requisitos
@@ -56,7 +62,8 @@ docker compose -f infra/docker-compose.yml up --build
 ./mvnw test
 ```
 
-- `TokenServiceTest`, `AuthApiH2Test` y `GroupApiH2Test` corren **siempre** (sin Docker).
+- `TokenServiceTest`, `SplitCalculatorTest`, `AuthApiH2Test`, `GroupApiH2Test` y
+  `ExpenseApiH2Test` corren **siempre** (sin Docker).
 - `AuthApiPostgresTest` se **omite** automáticamente si no hay Docker.
 
 ## Endpoints
@@ -80,10 +87,21 @@ docker compose -f infra/docker-compose.yml up --build
 | DELETE | `/api/v1/groups/{groupId}/members/{userId}` | Expulsa o abandona |
 | POST | `/api/v1/groups/{groupId}/invites` | Devuelve código/enlace (cualquier miembro) |
 | POST | `/api/v1/invites/{code}/accept` | Une al usuario con el código |
+| GET | `/api/v1/groups/{groupId}/expenses` | Lista gastos del grupo (cursor + filtros) |
+| POST | `/api/v1/groups/{groupId}/expenses` | Crea gasto con reparto (`Idempotency-Key` opcional) |
+| GET | `/api/v1/expenses/{expenseId}` | Detalle del gasto (solo miembros) |
+| PATCH | `/api/v1/expenses/{expenseId}` | Edita (creador o OWNER/ADMIN) |
+| DELETE | `/api/v1/expenses/{expenseId}` | Borrado lógico (creador o OWNER/ADMIN) |
 
 Reglas de autorización (Fase 2): un no-miembro recibe `403 NOT_MEMBER`;
 rol insuficiente → `403 INSUFFICIENT_ROLE`; no se puede degradar ni quitar
 al último `OWNER` (`409 LAST_OWNER`).
+
+Reglas de gastos (Fase 3): cualquier miembro activo puede crear gastos, pero el
+pagador y todos los participantes deben ser miembros activos (`422 INVALID_PARTICIPANT`);
+la moneda del gasto debe coincidir con la del grupo (`400`); un reparto que no cuadra
+da `422 SPLIT_MISMATCH` y unos porcentajes que no suman 100 dan `422 PERCENTAGE_SUM`.
+Editar o borrar un gasto requiere ser su creador o tener rol `OWNER`/`ADMIN`.
 
 ### Ejemplo
 
@@ -110,7 +128,7 @@ app:
 ```
 src/main/java/app/cuentasclaras/
 ├── api/            # controllers, DTOs y manejo de errores
-├── application/    # casos de uso (auth, user, group) y seguridad
+├── application/    # casos de uso (auth, user, group, expense, idempotency) y seguridad
 ├── domain/         # modelos y puertos de repositorio (sin framework)
 └── infrastructure/ # JPA, seguridad (JWT) y configuración
 ```

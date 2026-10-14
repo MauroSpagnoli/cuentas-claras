@@ -79,7 +79,7 @@ public class GroupService {
 
         List<Group> found = groups.findForUser(
                 userId,
-                decoded == null ? null : decoded.createdAt(),
+                decoded == null ? null : Instant.parse(decoded.key()),
                 decoded == null ? null : decoded.id(),
                 size + 1);
 
@@ -94,7 +94,7 @@ public class GroupService {
         String nextCursor = null;
         if (hasMore && !page.isEmpty()) {
             Group last = page.get(page.size() - 1);
-            nextCursor = CursorCodec.encode(new CursorCodec.Cursor(last.createdAt(), last.id()));
+            nextCursor = CursorCodec.encode(last.createdAt().toString(), last.id());
         }
         return new Page<>(items, nextCursor, hasMore);
     }

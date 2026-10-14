@@ -1,5 +1,6 @@
 package app.cuentasclaras.api.error;
 
+import app.cuentasclaras.domain.service.SplitValidationException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ProblemDetail> handleApi(ApiException ex) {
         return build(ex.code(), ex.getMessage());
+    }
+
+    @ExceptionHandler(SplitValidationException.class)
+    public ResponseEntity<ProblemDetail> handleSplit(SplitValidationException ex) {
+        ErrorCode code = switch (ex.error()) {
+            case SPLIT_MISMATCH -> ErrorCode.SPLIT_MISMATCH;
+            case PERCENTAGE_SUM -> ErrorCode.PERCENTAGE_SUM;
+            case INVALID -> ErrorCode.VALIDATION_ERROR;
+        };
+        return build(code, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

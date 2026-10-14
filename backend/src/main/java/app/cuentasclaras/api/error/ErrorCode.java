@@ -18,8 +18,13 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "El email ya está registrado"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "Recurso no encontrado"),
     GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "Grupo no encontrado"),
+    EXPENSE_NOT_FOUND(HttpStatus.NOT_FOUND, "Gasto no encontrado"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "Usuario no encontrado"),
     INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "Código de invitación no válido"),
+    // 422: la petición es sintácticamente válida pero incumple una regla de negocio.
+    SPLIT_MISMATCH(HttpStatus.UNPROCESSABLE_ENTITY, "El reparto no cuadra con el total"),
+    PERCENTAGE_SUM(HttpStatus.UNPROCESSABLE_ENTITY, "Los porcentajes no suman 100"),
+    INVALID_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "Participante inválido"),
     ALREADY_MEMBER(HttpStatus.CONFLICT, "El usuario ya pertenece al grupo"),
     LAST_OWNER(HttpStatus.CONFLICT, "El grupo debe conservar al menos un OWNER"),
     CONFLICT(HttpStatus.CONFLICT, "Conflicto de versión o estado"),

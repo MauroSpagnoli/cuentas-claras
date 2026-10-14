@@ -8,13 +8,14 @@ Un único servicio **Spring Boot** (Java 17) con arquitectura **en capas / hexag
 backend/src/main/java/app/cuentasclaras/
 ├── api/                     # entrada HTTP
 │   ├── controller/          # AuthController, GroupController, ExpenseController...
-│   ├── dto/                 # request/response (@Validated)
-│   ├── mapper/              # MapStruct: DTO <-> dominio
+│   ├── dto/                 # request/response (@Valid) con mappers estáticos from(...)
 │   └── error/               # @ControllerAdvice -> RFC 7807
 ├── application/             # casos de uso (@Service, @Transactional)
 │   ├── auth/
 │   ├── group/
 │   ├── expense/
+│   ├── idempotency/
+│   ├── common/              # CursorCodec
 │   ├── balance/
 │   └── settlement/
 ├── domain/                  # lógica pura, sin Spring
@@ -79,24 +80,27 @@ sequenceDiagram
 
 ## 5. Errores
 
-`@RestControllerAdvice` traduce excepciones a **RFC 7807**:
+`@RestControllerAdvice` (`GlobalExceptionHandler`) traduce excepciones a **RFC 7807**.
+Los códigos viven en el enum `ErrorCode` (código → HTTP + título):
 
-| Excepción | HTTP | `code` |
+| Excepción | HTTP | `code` (ejemplos) |
 |---|---|---|
+| `ApiException(ErrorCode)` | según el código | `NOT_MEMBER`, `INVALID_PARTICIPANT`, `EXPENSE_NOT_FOUND`, `CONFLICT`… |
+| `SplitValidationException` | 422 | `SPLIT_MISMATCH`, `PERCENTAGE_SUM` |
 | `MethodArgumentNotValidException` | 400 | `VALIDATION_ERROR` |
-| `SplitMismatchException` | 422 | `SPLIT_MISMATCH` |
-| `NotGroupMemberException` | 403 | `NOT_MEMBER` |
-| `ResourceNotFoundException` | 404 | `NOT_FOUND` |
-| `OptimisticLockingFailureException` | 409 | `VERSION_CONFLICT` |
-| `InvalidCredentialsException` | 401 | `INVALID_CREDENTIALS` |
+| `OptimisticLockingFailureException` | 409 | `CONFLICT` |
+| `DataIntegrityViolationException` | 409 | `CONFLICT` |
 
 ## 6. Idempotencia
 
-Interceptor/`@Around` en `POST` de escritura:
+Implementada en `IdempotencyService` con el flujo **reservar → ejecutar → completar**
+(no un interceptor genérico, por simplicidad y transparencia):
+
 1. Si viene `Idempotency-Key`, se busca `(user_id, key)`.
 2. Si existe con el mismo `request_hash` → se devuelve la respuesta guardada.
 3. Si existe con hash distinto → `409`.
-4. Si no existe → se ejecuta y se guarda la respuesta.
+4. Si no existe → se **reserva** la clave, se ejecuta y se guarda la respuesta.
+5. Si la operación falla, se libera la reserva (permite reintentar).
 
 ## 7. Observabilidad
 
@@ -133,7 +137,7 @@ services:
     ports: [ "8080:8080" ]
 ```
 
-- **Perfiles** Spring: `local`, `test`, `docker`, `prod`.
+- **Perfiles** Spring: `dev` (por defecto, H2), `docker` (PostgreSQL) y `test` (Testcontainers).
 - Secretos por variables de entorno (nunca en el repo).
 - Imagen Docker multi-stage (build con JDK, runtime con JRE *slim*).
 - En CI: build + `test` (con Testcontainers) + validación de OpenAPI.

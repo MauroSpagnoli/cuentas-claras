@@ -16,6 +16,9 @@ public interface ExpenseRepository {
 
     Optional<Expense> findById(UUID id);
 
+    /** Todos los gastos activos del grupo (sin paginar), para calcular balances. */
+    List<Expense> findActiveByGroup(UUID groupId);
+
     /**
      * Gastos activos (no borrados) que cumplen los filtros, ordenados por
      * {@code expense_date DESC, id DESC}. Si {@code cursorDate} no es nulo

@@ -57,17 +57,17 @@ Roadmap incremental. Cada fase termina con **algo verificable** y criterios de a
 
 ---
 
-## Fase 4 · Balances y plan de liquidación
+## Fase 4 · Balances y plan de liquidación (completada)
 **Objetivo:** el valor diferencial del producto.
 **Entregables:**
-- `BalanceCalculator` (netos + pares).
-- `SettlementPlanner` (greedy; exacto para `n ≤ 12`).
-- Endpoints `GET /balances` y `GET /settlement-plan`.
-- Registro y listado de `settlements`.
+- [x] `BalanceCalculator` (netos + pares).
+- [x] `SettlementPlanner` (greedy, y exacto para `n ≤ 12`).
+- [x] Endpoints `GET /balances` y `GET /settlement-plan`.
+- [x] Registro y listado de `settlements` (`V8__settlements.sql`, `Idempotency-Key` en el POST).
 **Criterios de aceptación:**
-- `Σ netos = 0` en todos los casos de prueba.
-- El plan salda todas las deudas (se puede verificar aplicándolo).
-- Tests unitarios y de propiedad (random) del plan.
+- [x] `Σ netos = 0` en todos los casos de prueba.
+- [x] El plan salda todas las deudas (se puede verificar aplicándolo).
+- [x] Tests unitarios y de propiedad (random) del plan.
 
 ---
 

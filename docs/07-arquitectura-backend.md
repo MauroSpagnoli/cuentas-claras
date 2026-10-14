@@ -74,7 +74,7 @@ sequenceDiagram
 - **Spring Data JPA + Hibernate**, PostgreSQL.
 - Entidades JPA separadas de los modelos de dominio (mappers explícitos).
 - **Flyway** para migraciones versionadas (`V1__...`, `V2__...`). `ddl-auto = validate` en producción.
-- **Bloqueo optimista**: `@Version` en `Expense`, `Group`, `Settlement`.
+- **Bloqueo optimista**: `@Version` en `Expense` y `Group`. Los pagos (`settlements`) son registros inmutables: no llevan `version` (solo borrado lógico).
 - **Transacciones**: límite transaccional en la capa `application` (no en controllers ni repos).
 - **N+1**: `JOIN FETCH` / `EntityGraph` en consultas de detalle; DTOs *projection* para listados.
 

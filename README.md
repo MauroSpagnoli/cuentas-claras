@@ -7,11 +7,11 @@ Es un proyecto **full-stack** pensado como pieza de portfolio:
 - 📱 **Cliente Android**: Kotlin + Jetpack Compose + Hilt + Room + Retrofit + MVI.
 - ☕ **Backend**: Java + Spring Boot + PostgreSQL + JWT, con contrato **OpenAPI** como fuente de verdad.
 
-> **Estado: diseño completo + Fases 1, 2 y 3 (backend) implementadas.** El repositorio
+> **Estado: diseño completo + Fases 1, 2, 3 y 4 (backend) implementadas.** El repositorio
 > contiene la documentación de arquitectura, modelo de datos, contrato de API y
-> plan por fases, y ya el **backend de autenticación, grupos, miembros y gastos con
-> reparto** en `backend/` (Spring Boot, JWT, Flyway, Swagger y tests). El cliente
-> Android llegará en fases posteriores.
+> plan por fases, y ya el **backend de autenticación, grupos, miembros, gastos con
+> reparto, balances y plan de liquidación** en `backend/` (Spring Boot, JWT, Flyway,
+> Swagger y tests). El cliente Android llegará en fases posteriores.
 
 ---
 
@@ -78,7 +78,7 @@ cuentas-claras/
 | **1 · Backend base + autenticación** | ✅ Implementada — ver [`backend/README.md`](backend/README.md) |
 | **2 · Grupos y miembros** | ✅ Implementada — CRUD de grupos, roles, invitaciones y `GroupAccessGuard` |
 | **3 · Gastos y repartos** | ✅ Implementada — 4 tipos de reparto, `SplitCalculator`, cursor + filtros e idempotencia |
-| 4 · Balances y liquidación | ⏳ Pendiente |
+| **4 · Balances y liquidación** | ✅ Implementada — `BalanceCalculator`, `SettlementPlanner` (exacto/voraz), balances por pares, plan y registro de pagos |
 | 5 · Android: base + auth | ⏳ Pendiente |
 | 6+ · Resto de features Android | ⏳ Pendiente |
 

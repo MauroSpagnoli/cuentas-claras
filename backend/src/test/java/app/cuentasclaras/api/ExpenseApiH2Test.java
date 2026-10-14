@@ -11,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -164,7 +165,9 @@ class ExpenseApiH2Test {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("PERCENTAGE_SUM"));
 
-        // SHARES 2:1 sobre 1000 -> 667/333 y suma correcta
+        // SHARES 2:1 sobre 1000 -> 666/334 o 667/333 y suma correcta.
+        // El centimo sobrante va al menor userId, que en cada ejecucion es
+        // aleatorio, por eso solo se admite una de las dos repartos.
         String sharesBody = mockMvc.perform(post(expensesUrl(groupId))
                         .header("Authorization", "Bearer " + ana)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -175,7 +178,7 @@ class ExpenseApiH2Test {
                 .andReturn().getResponse().getContentAsString();
         JsonNode sharesExpense = objectMapper.readTree(sharesBody);
         assertThat(sharesSum(sharesExpense)).isEqualTo(1000);
-        assertThat(maxShare(sharesExpense)).isEqualTo(667);
+        assertThat(shareAmounts(sharesExpense)).isIn(List.of(334L, 666L), List.of(333L, 667L));
 
         // PERCENTAGE 50/50 sobre 3001 -> el resto va a un solo participante
         String percentBody = mockMvc.perform(post(expensesUrl(groupId))
@@ -459,5 +462,13 @@ class ExpenseApiH2Test {
             max = Math.max(max, share.get("amountMinor").asLong());
         }
         return max;
+    }
+
+    /** Importes de las partes ordenados de menor a mayor. */
+    private static List<Long> shareAmounts(JsonNode expense) {
+        return expense.get("shares").findValues("amountMinor").stream()
+                .map(JsonNode::asLong)
+                .sorted()
+                .toList();
     }
 }

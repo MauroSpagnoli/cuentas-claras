@@ -44,6 +44,13 @@ class ExpenseRepositoryAdapter implements ExpenseRepository {
     }
 
     @Override
+    public List<Expense> findActiveByGroup(UUID groupId) {
+        return jpaRepository.findByGroupIdAndDeletedAtIsNull(groupId).stream()
+                .map(ExpenseRepositoryAdapter::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Expense> findPage(ExpenseQuery query, LocalDate cursorDate, UUID cursorId, int limit) {
         Pageable pageable = PageRequest.of(0, limit, ORDER);
         return jpaRepository.findAll(specification(query, cursorDate, cursorId), pageable)

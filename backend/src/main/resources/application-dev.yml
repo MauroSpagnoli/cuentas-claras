@@ -18,6 +18,16 @@ spring:
       enabled: true
       path: /h2-console
 
+# Usuario de demostracion: se crea al arrancar (idempotente) para poder entrar
+# en la app sin registrarse. Solo existe en este perfil. Ponlo a false para desactivarlo.
+app:
+  demo-user:
+    enabled: true
+    email: demo@cuentasclaras.app
+    password: demo1234
+    display-name: Demo
+    default-currency: EUR
+
 logging:
   level:
     app.cuentasclaras: DEBUG

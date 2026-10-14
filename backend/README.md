@@ -52,6 +52,32 @@ liquidaciones construida con **Spring Boot 3 (Java 17)**. Fases 1, 2, 3 y 4 del
 
 El perfil `dev` es el **por defecto**: no necesita base de datos externa.
 
+### Usuario de demostración (entrar sin registrarse)
+
+Al arrancar en el perfil `dev`, `DemoUserSeeder` crea un usuario de prueba de
+forma **idempotente** (si ya existe, no hace nada):
+
+| Campo | Valor |
+|---|---|
+| Email | `demo@cuentasclaras.app` |
+| Contraseña | `demo1234` |
+| Moneda | `EUR` |
+
+Se configura (y se puede desactivar) en `application-dev.yml`:
+
+```yaml
+app:
+  demo-user:
+    enabled: true
+    email: demo@cuentasclaras.app
+    password: demo1234
+    display-name: Demo
+    default-currency: EUR
+```
+
+> Solo existe en el perfil `dev`. Como la base es H2 `create-drop`, el usuario se
+> recrea en cada arranque; en los perfiles con Postgres (`docker`, `test`) no se crea.
+
 ## Ejecutar con PostgreSQL
 
 ```bash
@@ -74,8 +100,8 @@ docker compose -f infra/docker-compose.yml up --build
 ```
 
 - `TokenServiceTest`, `SplitCalculatorTest`, `BalanceCalculatorTest`, `SettlementPlannerTest`,
-  `AuthApiH2Test`, `GroupApiH2Test`, `ExpenseApiH2Test`, `BalanceAndSettlementApiH2Test` y
-  `ActivityApiH2Test` corren **siempre** (sin Docker).
+  `AuthApiH2Test`, `GroupApiH2Test`, `ExpenseApiH2Test`, `BalanceAndSettlementApiH2Test`,
+  `ActivityApiH2Test` y `DemoUserSeederTest` corren **siempre** (sin Docker).
 - `MigrationSmokeH2Test` aplica **todo** el historial Flyway sobre H2 (modo PostgreSQL) y deja
   que Hibernate (`ddl-auto=validate`) compruebe que las entidades coinciden con las migraciones.
 - `AuthApiPostgresTest` se **omite** automáticamente si no hay Docker.
@@ -161,5 +187,8 @@ src/main/java/app/cuentasclaras/
 ├── api/            # controllers, DTOs y manejo de errores
 ├── application/    # casos de uso (auth, user, group, expense, balance, settlement, activity, idempotency) y seguridad
 ├── domain/         # modelos y puertos de repositorio (sin framework)
-└── infrastructure/ # JPA, seguridad (JWT) y configuración
+└── infrastructure/ # JPA, seguridad (JWT), configuración y bootstrap
 ```
+
+El paquete `infrastructure/bootstrap` contiene los inicializadores de datos de
+desarrollo (por ahora `DemoUserSeeder`, activo solo con el perfil `dev`).

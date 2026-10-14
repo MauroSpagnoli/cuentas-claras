@@ -73,17 +73,21 @@ Roadmap incremental. Cada fase termina con **algo verificable** y criterios de a
 
 ---
 
-## Fase 5 · Android: base
+## Fase 5 · Android: base (completada)
 **Objetivo:** esqueleto multi-módulo funcional con auth.
 **Entregables:**
-- Módulos Gradle (`core/*`, `domain`, `data`, `feature/auth`, `app`).
-- Hilt + `DispatchersModule` + `NetworkModule` + `DatabaseModule`.
-- Retrofit + interceptores (auth, idempotencia) + almacenamiento cifrado de tokens.
-- Pantalla de login/registro con MVI + navegación raíz.
+- [x] Módulos Gradle (`core/*`, `domain`, `data`, `feature/auth`, `app`).
+- [x] Hilt + `DispatchersModule` + `NetworkModule` + `DatabaseModule`.
+- [x] Retrofit + interceptores (auth, idempotencia) + almacenamiento cifrado de tokens.
+- [x] Pantalla de login/registro con MVI + navegación raíz.
 **Criterios de aceptación:**
-- Login real contra el backend, token guardado cifrado, sesión persistente.
-- Al expirar el access, el refresh se ejecuta de forma transparente.
-- Tests de ViewModel (Turbine) y de red (MockWebServer).
+- [x] Login real contra el backend, token guardado cifrado, sesión persistente.
+- [x] Al expirar el access, el refresh se ejecuta de forma transparente.
+- [x] Tests de ViewModel (Turbine) y de red (MockWebServer).
+**Verificación:**
+- `:app:assembleDebug` y `:app:assembleRelease` compilan.
+- 26 tests unitarios en verde (`domain`, `core:network`, `data`, `feature/auth`).
+- Test instrumentado end-to-end contra backend real (`AuthEndToEndTest`): registro → restauración de sesión → logout → login → mapeo de `401`.
 
 ---
 

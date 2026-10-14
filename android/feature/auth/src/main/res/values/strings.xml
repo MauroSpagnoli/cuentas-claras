@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_title_login">Inicia sesión</string>
+    <string name="auth_title_register">Crea tu cuenta</string>
+    <string name="auth_subtitle_login">Gestiona los gastos compartidos sin líos</string>
+    <string name="auth_subtitle_register">Empieza a repartir gastos en segundos</string>
+
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Contraseña</string>
+    <string name="auth_display_name">Nombre</string>
+    <string name="auth_currency">Moneda (ISO 4217)</string>
+
+    <string name="auth_submit_login">Entrar</string>
+    <string name="auth_submit_register">Crear cuenta</string>
+    <string name="auth_switch_to_register">¿No tienes cuenta? Regístrate</string>
+    <string name="auth_switch_to_login">¿Ya tienes cuenta? Inicia sesión</string>
+
+    <string name="auth_show_password">Mostrar contraseña</string>
+    <string name="auth_hide_password">Ocultar contraseña</string>
+    <string name="auth_toggle_show">Ver</string>
+    <string name="auth_toggle_hide">Ocultar</string>
+
+    <string name="auth_error_required">Este campo es obligatorio</string>
+    <string name="auth_error_invalid_email">Introduce un email válido</string>
+    <string name="auth_error_password_too_short">Mínimo %1$d caracteres</string>
+    <string name="auth_error_display_name_too_long">Máximo %1$d caracteres</string>
+    <string name="auth_error_invalid_currency">Código de 3 letras (p. ej. EUR)</string>
+
+    <string name="auth_error_network">No hay conexión. Inténtalo de nuevo.</string>
+    <string name="auth_error_unauthorized">Email o contraseña incorrectos.</string>
+    <string name="auth_error_forbidden">No tienes permiso para esta acción.</string>
+    <string name="auth_error_not_found">No encontramos el recurso solicitado.</string>
+    <string name="auth_error_conflict">Ese email ya está registrado.</string>
+    <string name="auth_error_validation">Revisa los datos introducidos.</string>
+    <string name="auth_error_server">El servidor ha fallado. Inténtalo más tarde.</string>
+    <string name="auth_error_unexpected">Ha ocurrido un error inesperado.</string>
+</resources>

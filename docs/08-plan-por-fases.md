@@ -15,18 +15,20 @@ Roadmap incremental. Cada fase termina con **algo verificable** y criterios de a
 
 ---
 
-## Fase 1 · Backend base + autenticación
+## Fase 1 · Backend base + autenticación (completada)
 **Objetivo:** API que levanta, migra y autentica.
 **Entregables:**
-- Proyecto Spring Boot (Java 17) + `docker-compose` (Postgres + API).
-- Flyway `V1__users.sql`, `V2__refresh_tokens.sql`.
-- Endpoints `register`, `login`, `refresh`, `logout`, `GET/PATCH /users/me`.
-- Seguridad JWT (RS256) + refresh rotativo + `@ControllerAdvice` RFC 7807.
-- Swagger UI.
+- [x] Proyecto Spring Boot (Java 17) + `docker-compose` (Postgres + API).
+- [x] Flyway `V1__init_users.sql`, `V2__refresh_tokens.sql`.
+- [x] Endpoints `register`, `login`, `refresh`, `logout`, `GET/PATCH /users/me`.
+- [x] Seguridad JWT (RS256) + refresh rotativo + `@ControllerAdvice` RFC 7807.
+- [x] Swagger UI.
 **Criterios de aceptación:**
-- `docker-compose up` → `/actuator/health` = `UP`.
-- Registro/login/refresh funcionan; un token caducado devuelve `401`; refresh rota y revoca.
-- Tests de integración (Testcontainers) en verde para auth.
+- [x] `docker-compose up` → `/actuator/health` = `UP`.
+- [x] Registro/login/refresh funcionan; un token caducado devuelve `401`; refresh rota y revoca.
+- [x] Tests de integración (Testcontainers) en verde para auth.
+**Nota:** la suite de Testcontainers (`AuthApiPostgresTest`, `@Testcontainers(disabledWithoutDocker = true)`) se
+omite automáticamente cuando no hay Docker; sin Docker los tests de integración corren contra H2 (perfil `test`).
 
 ---
 

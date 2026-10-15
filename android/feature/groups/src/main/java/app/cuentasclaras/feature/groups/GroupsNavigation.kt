@@ -1,12 +1,9 @@
 package app.cuentasclaras.feature.groups
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import app.cuentasclaras.feature.groups.create.CreateGroupEntry
 import app.cuentasclaras.feature.groups.detail.GroupDetailEntry
@@ -25,45 +22,42 @@ object GroupsRoutes {
 }
 
 /**
- * Grafo de navegación del área autenticada: listado de grupos, creación y
- * detalle (con miembros e invitaciones).
+ * Grafo de grupos: listado, creación y detalle (con miembros e invitaciones).
+ *
+ * El `NavHost` raíz del área autenticada lo monta `AuthenticatedNavHost`, que
+ * encadena este grafo con el de gastos.
  *
  * @param currentUserId id del usuario con la sesión abierta; la UI lo usa para
  *   decidir sobre qué miembros puede actuar.
  * @param onSignOut cierre de sesión, resuelto por el grafo raíz.
+ * @param onOpenExpenses abre el listado de gastos del grupo elegido.
  */
-@Composable
-fun GroupsNavHost(
+fun NavGraphBuilder.groupsGraph(
+    navController: NavHostController,
     currentUserId: String,
     onSignOut: () -> Unit,
-    modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController(),
+    onOpenExpenses: (groupId: String) -> Unit,
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = GroupsRoutes.LIST,
-        modifier = modifier,
+    composable(GroupsRoutes.LIST) {
+        GroupsListEntry(
+            onOpenGroup = { groupId -> navController.navigate(GroupsRoutes.detail(groupId)) },
+            onCreateGroup = { navController.navigate(GroupsRoutes.CREATE) },
+            onSignOut = onSignOut,
+        )
+    }
+
+    composable(GroupsRoutes.CREATE) {
+        CreateGroupEntry(onBack = { navController.popBackStack() })
+    }
+
+    composable(
+        route = GroupsRoutes.DETAIL,
+        arguments = listOf(navArgument(GroupsRoutes.ARG_GROUP_ID) { type = NavType.StringType }),
     ) {
-        composable(GroupsRoutes.LIST) {
-            GroupsListEntry(
-                onOpenGroup = { groupId -> navController.navigate(GroupsRoutes.detail(groupId)) },
-                onCreateGroup = { navController.navigate(GroupsRoutes.CREATE) },
-                onSignOut = onSignOut,
-            )
-        }
-
-        composable(GroupsRoutes.CREATE) {
-            CreateGroupEntry(onBack = { navController.popBackStack() })
-        }
-
-        composable(
-            route = GroupsRoutes.DETAIL,
-            arguments = listOf(navArgument(GroupsRoutes.ARG_GROUP_ID) { type = NavType.StringType }),
-        ) {
-            GroupDetailEntry(
-                currentUserId = currentUserId,
-                onBack = { navController.popBackStack() },
-            )
-        }
+        GroupDetailEntry(
+            currentUserId = currentUserId,
+            onBack = { navController.popBackStack() },
+            onOpenExpenses = onOpenExpenses,
+        )
     }
 }

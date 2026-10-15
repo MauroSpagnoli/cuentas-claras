@@ -3,9 +3,10 @@ package app.cuentasclaras.core.database.di
 import android.content.Context
 import androidx.room.Room
 import app.cuentasclaras.core.database.CuentasClarasDatabase
+import app.cuentasclaras.core.database.dao.ExpenseDao
 import app.cuentasclaras.core.database.dao.GroupDao
 import app.cuentasclaras.core.database.dao.UserDao
-import app.cuentasclaras.core.database.migration.MIGRATION_1_2
+import app.cuentasclaras.core.database.migration.DATABASE_MIGRATIONS
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +22,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): CuentasClarasDatabase =
         Room.databaseBuilder(context, CuentasClarasDatabase::class.java, "cuentas-claras.db")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(*DATABASE_MIGRATIONS)
             .build()
 
     @Provides
@@ -29,4 +30,7 @@ object DatabaseModule {
 
     @Provides
     fun provideGroupDao(database: CuentasClarasDatabase): GroupDao = database.groupDao()
+
+    @Provides
+    fun provideExpenseDao(database: CuentasClarasDatabase): ExpenseDao = database.expenseDao()
 }

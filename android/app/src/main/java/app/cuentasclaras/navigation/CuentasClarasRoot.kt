@@ -17,7 +17,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cuentasclaras.R
 import app.cuentasclaras.feature.auth.AuthNavHost
-import app.cuentasclaras.feature.groups.GroupsNavHost
 import app.cuentasclaras.session.SessionState
 import app.cuentasclaras.session.SessionViewModel
 
@@ -35,7 +34,7 @@ fun CuentasClarasRoot(
     when (val state = sessionState) {
         SessionState.Loading -> SplashScreen()
         SessionState.LoggedOut -> AuthNavHost()
-        is SessionState.LoggedIn -> GroupsNavHost(
+        is SessionState.LoggedIn -> AuthenticatedNavHost(
             currentUserId = state.session.user.id,
             onSignOut = sessionViewModel::signOut,
         )

@@ -1,5 +1,6 @@
 package app.cuentasclaras.feature.groups.detail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,6 +61,7 @@ import app.cuentasclaras.feature.groups.toMessage
 fun GroupDetailEntry(
     currentUserId: String,
     onBack: () -> Unit,
+    onOpenExpenses: (groupId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GroupDetailViewModel = hiltViewModel(),
 ) {
@@ -69,6 +72,7 @@ fun GroupDetailEntry(
         currentUserId = currentUserId,
         onEvent = viewModel::onEvent,
         onBack = onBack,
+        onOpenExpenses = { onOpenExpenses(viewModel.groupId) },
         modifier = modifier,
     )
 }
@@ -80,6 +84,7 @@ fun GroupDetailScreen(
     currentUserId: String,
     onEvent: (GroupDetailEvent) -> Unit,
     onBack: () -> Unit,
+    onOpenExpenses: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -134,6 +139,27 @@ fun GroupDetailScreen(
                 else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     state.group?.let { group ->
                         item { GroupSummary(group = group) }
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(onClick = onOpenExpenses)
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.group_detail_expenses),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                            )
+                        }
+                        HorizontalDivider()
                     }
 
                     item {

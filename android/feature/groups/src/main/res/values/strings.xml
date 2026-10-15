@@ -35,6 +35,7 @@
     <string name="group_detail_title">Grupo</string>
     <string name="group_detail_back">Volver</string>
     <string name="group_detail_members">Miembros</string>
+    <string name="group_detail_expenses">Gastos</string>
     <string name="group_detail_add_member">Añadir miembro</string>
     <string name="group_detail_invite">Invitar</string>
     <string name="group_detail_join_title">Añadir miembro</string>

@@ -1,10 +1,12 @@
 package app.cuentasclaras.data.di
 
 import app.cuentasclaras.data.repository.AuthRepositoryImpl
+import app.cuentasclaras.data.repository.ExpenseRepositoryImpl
 import app.cuentasclaras.data.repository.GroupRepositoryImpl
 import app.cuentasclaras.data.token.EncryptedAuthTokenStore
 import app.cuentasclaras.domain.auth.AuthTokenStore
 import app.cuentasclaras.domain.repository.AuthRepository
+import app.cuentasclaras.domain.repository.ExpenseRepository
 import app.cuentasclaras.domain.repository.GroupRepository
 import dagger.Binds
 import dagger.Module
@@ -27,4 +29,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindGroupRepository(impl: GroupRepositoryImpl): GroupRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindExpenseRepository(impl: ExpenseRepositoryImpl): ExpenseRepository
 }

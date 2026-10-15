@@ -2,6 +2,7 @@ package app.cuentasclaras.core.network.di
 
 import app.cuentasclaras.core.network.NetworkConfig
 import app.cuentasclaras.core.network.api.AuthApi
+import app.cuentasclaras.core.network.api.ExpensesApi
 import app.cuentasclaras.core.network.api.GroupsApi
 import app.cuentasclaras.core.network.interceptor.AuthInterceptor
 import app.cuentasclaras.core.network.interceptor.IdempotencyInterceptor
@@ -105,6 +106,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideGroupsApi(retrofit: Retrofit): GroupsApi = retrofit.create(GroupsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideExpensesApi(retrofit: Retrofit): ExpensesApi = retrofit.create(ExpensesApi::class.java)
 
     private val APPLICATION_JSON = "application/json".toMediaType()
 }

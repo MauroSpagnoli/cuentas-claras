@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Listado -->
+    <string name="expenses_title">Gastos</string>
+    <string name="expenses_refresh">Actualizar</string>
+    <string name="expenses_new">Nuevo gasto</string>
+    <string name="expenses_empty_title">Todavía no hay gastos</string>
+    <string name="expenses_empty_body">Crea el primer gasto del grupo para empezar a repartir.</string>
+    <string name="expenses_retry">Reintentar</string>
+    <string name="expenses_loading">Cargando gastos…</string>
+    <string name="expenses_loading_more">Cargando más gastos…</string>
+    <string name="expenses_payer">Pagado por %1$s</string>
+    <string name="expenses_unknown_member">(sin nombre)</string>
+
+    <!-- Detalle -->
+    <string name="expense_detail_title">Gasto</string>
+    <string name="expense_detail_back">Volver</string>
+    <string name="expense_action_edit">Editar</string>
+    <string name="expense_action_delete">Borrar</string>
+    <string name="expense_delete_title">Borrar el gasto</string>
+    <string name="expense_delete_body">Se pedirá el borrado al servidor y dejará de aparecer en la próxima sincronización.</string>
+    <string name="expense_delete_confirm">Borrar</string>
+    <string name="expense_delete_cancel">Cancelar</string>
+    <string name="expense_detail_amount">Importe</string>
+    <string name="expense_detail_date">Fecha</string>
+    <string name="expense_detail_category">Categoría</string>
+    <string name="expense_detail_notes">Notas</string>
+    <string name="expense_detail_split">Reparto</string>
+    <string name="expense_detail_no_category">Sin categoría</string>
+    <string name="expense_detail_no_notes">Sin notas</string>
+    <string name="expense_detail_not_found">Este gasto ya no está disponible.</string>
+
+    <!-- Tipos de reparto -->
+    <string name="split_type_equal">A partes iguales</string>
+    <string name="split_type_exact">Importes exactos</string>
+    <string name="split_type_percentage">Porcentajes</string>
+    <string name="split_type_shares">Partes</string>
+
+    <!-- Formulario -->
+    <string name="expense_form_create_title">Nuevo gasto</string>
+    <string name="expense_form_edit_title">Editar gasto</string>
+    <string name="expense_form_back">Volver</string>
+    <string name="expense_form_description">Descripción</string>
+    <string name="expense_form_amount">Importe</string>
+    <string name="expense_form_date">Fecha</string>
+    <string name="expense_form_category">Categoría (opcional)</string>
+    <string name="expense_form_notes">Notas (opcional)</string>
+    <string name="expense_form_paid_by">Pagado por</string>
+    <string name="expense_form_choose">Elegir…</string>
+    <string name="expense_form_split_type">Tipo de reparto</string>
+    <string name="expense_form_participants">Participantes</string>
+    <string name="expense_form_participants_empty">El grupo no tiene miembros activos.</string>
+    <string name="expense_form_amount_label">Importe</string>
+    <string name="expense_form_percentage_label">Porcentaje</string>
+    <string name="expense_form_weight_label">Partes</string>
+    <string name="expense_form_preview">= %1$s</string>
+    <string name="expense_form_loading">Cargando el gasto…</string>
+    <string name="expense_form_change_date">Cambiar fecha</string>
+    <string name="expense_form_accept">Aceptar</string>
+    <string name="expense_form_cancel">Cancelar</string>
+    <string name="expense_form_submit">Guardar</string>
+    <string name="expense_form_submit_editing">Guardar cambios</string>
+
+    <!-- Validación -->
+    <string name="expense_issue_required">Este campo es obligatorio</string>
+    <string name="expense_issue_too_long">Máximo %1$d caracteres</string>
+    <string name="expense_issue_invalid_amount">Introduce un importe válido (por ejemplo 12,50)</string>
+    <string name="expense_issue_amount_not_positive">El importe debe ser mayor que cero</string>
+    <string name="expense_issue_amount_too_large">El importe es demasiado grande</string>
+    <string name="expense_issue_invalid_number">Introduce un número válido</string>
+    <string name="expense_issue_negative_number">No se admiten valores negativos</string>
+    <string name="expense_issue_no_participants">Selecciona al menos un participante</string>
+    <string name="expense_issue_payer_not_member">Elige a un miembro del grupo</string>
+    <string name="expense_issue_exact_mismatch">La suma de las partes (%1$s) no coincide con el importe (%2$s)</string>
+    <string name="expense_issue_percentage_not_hundred">Los porcentajes suman %1$s y deben sumar 100</string>
+    <string name="expense_issue_shares_all_zero">Las partes deben sumar más que cero</string>
+
+    <!-- Errores de API -->
+    <string name="expenses_error_network">No hay conexión con el servidor</string>
+    <string name="expenses_error_unauthorized">La sesión ha caducado</string>
+    <string name="expenses_error_forbidden">No tienes permisos sobre este gasto</string>
+    <string name="expenses_error_not_found">El gasto ya no existe</string>
+    <string name="expenses_error_conflict">Otro usuario ha modificado el gasto; vuelve a cargarlo</string>
+    <string name="expenses_error_validation">Revisa los datos introducidos</string>
+    <string name="expenses_error_server">El servidor no está disponible</string>
+    <string name="expenses_error_unexpected">Ha ocurrido un error inesperado</string>
+</resources>

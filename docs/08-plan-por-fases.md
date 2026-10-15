@@ -93,7 +93,7 @@ omite automáticamente cuando no hay Docker; sin Docker los tests de integració
 
 ---
 
-## Fase 6 · Android: grupos y gastos
+## Fase 6 · Android: grupos y gastos (completada)
 **Objetivo:** flujo principal de la app.
 **Entregables:**
 - `feature/groups` y `feature/expenses`.

@@ -35,6 +35,28 @@ suspend fun <T : Any> safeApiCall(
     AppResult.Failure(AppError.Unexpected(t.message))
 }
 
+/**
+ * Variante de [safeApiCall] para respuestas **sin cuerpo** (`204 No Content`),
+ * donde Retrofit devuelve `body() == null` aunque la llamada sea correcta.
+ */
+suspend fun safeUnitApiCall(
+    json: Json,
+    block: suspend () -> Response<Unit>,
+): AppResult<Unit> = try {
+    val response = block()
+    if (response.isSuccessful) {
+        AppResult.Success(Unit)
+    } else {
+        AppResult.Failure(response.toAppError(json))
+    }
+} catch (cancellation: CancellationException) {
+    throw cancellation
+} catch (io: IOException) {
+    AppResult.Failure(AppError.Network)
+} catch (t: Throwable) {
+    AppResult.Failure(AppError.Unexpected(t.message))
+}
+
 fun Response<*>.toAppError(json: Json): AppError {
     val problem = errorBody()?.string()?.let { raw ->
         runCatching { json.decodeFromString(ProblemDto.serializer(), raw) }.getOrNull()

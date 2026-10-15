@@ -57,6 +57,7 @@ android {
 
 dependencies {
     implementation project(':feature:auth')
+    implementation project(':feature:groups')
     implementation project(':data')
     implementation project(':domain')
     implementation project(':core:common')
@@ -89,5 +90,8 @@ dependencies {
     androidTestImplementation libs.androidx.test.runner
     androidTestImplementation libs.androidx.test.core
     androidTestImplementation libs.hilt.android.testing
+    androidTestImplementation libs.androidx.paging.common
+    androidTestImplementation libs.androidx.paging.testing
+    androidTestImplementation project(':core:database')
     kaptAndroidTest libs.hilt.compiler
 }

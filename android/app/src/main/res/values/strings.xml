@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Cuentas Claras</string>
-
-    <string name="home_greeting">Hola, %1$s</string>
-    <string name="home_currency">Moneda por defecto: %1$s</string>
-    <string name="home_placeholder">Tus grupos y gastos aparecerán aquí en las siguientes fases.</string>
-    <string name="home_sign_out">Cerrar sesión</string>
 </resources>

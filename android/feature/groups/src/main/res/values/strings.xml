@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="groups_title">Mis grupos</string>
+    <string name="groups_sign_out">Cerrar sesión</string>
+    <string name="groups_refresh">Actualizar</string>
+    <string name="groups_create">Crear grupo</string>
+    <string name="groups_create_short">Crear</string>
+    <string name="groups_join">Unirme con un código</string>
+    <string name="groups_empty_title">Todavía no tienes grupos</string>
+    <string name="groups_empty_body">Crea uno nuevo o únete a uno existente con su código de invitación.</string>
+    <string name="groups_retry">Reintentar</string>
+    <string name="groups_loading">Cargando grupos…</string>
+    <string name="groups_loading_more">Cargando más grupos…</string>
+
+    <plurals name="groups_member_count">
+        <item quantity="one">%d miembro</item>
+        <item quantity="other">%d miembros</item>
+    </plurals>
+
+    <string name="group_no_description">Sin descripción</string>
+    <string name="group_currency_value">Moneda: %1$s</string>
+
+    <string name="create_group_title">Crear grupo</string>
+    <string name="create_group_name">Nombre</string>
+    <string name="create_group_description">Descripción (opcional)</string>
+    <string name="create_group_currency">Moneda</string>
+    <string name="create_group_submit">Crear grupo</string>
+    <string name="create_group_back">Volver</string>
+
+    <string name="join_group_title">Unirme a un grupo</string>
+    <string name="join_group_code">Código o enlace de invitación</string>
+    <string name="join_group_submit">Unirme</string>
+    <string name="join_group_cancel">Cancelar</string>
+
+    <string name="group_detail_title">Grupo</string>
+    <string name="group_detail_back">Volver</string>
+    <string name="group_detail_members">Miembros</string>
+    <string name="group_detail_add_member">Añadir miembro</string>
+    <string name="group_detail_invite">Invitar</string>
+    <string name="group_detail_join_title">Añadir miembro</string>
+    <string name="group_detail_member_email">Email del miembro</string>
+    <string name="group_detail_member_submit">Añadir</string>
+    <string name="group_detail_member_cancel">Cancelar</string>
+    <string name="group_detail_no_members">Este grupo no tiene miembros todavía.</string>
+    <string name="group_detail_member_actions">Acciones sobre %1$s</string>
+    <string name="group_detail_make_admin">Hacer administrador</string>
+    <string name="group_detail_make_member">Quitar administrador</string>
+    <string name="group_detail_remove_member">Quitar del grupo</string>
+    <string name="group_detail_invite_title">Invitar al grupo</string>
+    <string name="group_detail_invite_code">Código</string>
+    <string name="group_detail_invite_url">Enlace</string>
+    <string name="group_detail_invite_copy">Copiar enlace</string>
+    <string name="group_detail_invite_copied">Enlace copiado al portapapeles</string>
+    <string name="group_detail_invite_close">Cerrar</string>
+
+    <string name="group_role_owner">Propietario</string>
+    <string name="group_member_role_admin">Administrador</string>
+    <string name="group_member_role_member">Miembro</string>
+    <string name="group_status_invited">Invitación pendiente</string>
+
+    <string name="groups_error_network">No se ha podido conectar con el servidor</string>
+    <string name="groups_error_unauthorized">Tu sesión ha caducado</string>
+    <string name="groups_error_forbidden">No tienes permisos para esta acción</string>
+    <string name="groups_error_not_found">No se ha encontrado el recurso</string>
+    <string name="groups_error_conflict">La operación no se ha podido completar</string>
+    <string name="groups_error_validation">Revisa los datos introducidos</string>
+    <string name="groups_error_server">El servidor no está disponible</string>
+    <string name="groups_error_unexpected">Ha ocurrido un error inesperado</string>
+    <string name="groups_error_required">Este campo es obligatorio</string>
+    <string name="groups_error_invalid_email">Introduce un email válido</string>
+    <string name="groups_error_invalid_currency">Usa un código ISO 4217 de 3 letras</string>
+    <string name="groups_error_too_short">Mínimo %1$d caracteres</string>
+    <string name="groups_error_too_long">Máximo %1$d caracteres</string>
+</resources>

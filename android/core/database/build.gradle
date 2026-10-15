@@ -32,6 +32,8 @@ android {
 dependencies {
     api libs.androidx.room.runtime
     implementation libs.androidx.room.ktx
+    implementation libs.androidx.room.paging
+    implementation libs.androidx.paging.common
     kapt libs.androidx.room.compiler
 
     implementation libs.kotlinx.coroutines.android
@@ -42,4 +44,6 @@ dependencies {
     testImplementation libs.robolectric
     testImplementation libs.androidx.test.core
     testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.androidx.room.testing
+    testImplementation libs.androidx.paging.common
 }

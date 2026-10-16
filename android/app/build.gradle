@@ -59,6 +59,7 @@ dependencies {
     implementation project(':feature:auth')
     implementation project(':feature:groups')
     implementation project(':feature:expenses')
+    implementation project(':feature:balances')
     implementation project(':data')
     implementation project(':domain')
     implementation project(':core:common')

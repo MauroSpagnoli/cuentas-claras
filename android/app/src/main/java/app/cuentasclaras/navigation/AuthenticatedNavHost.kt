@@ -5,17 +5,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import app.cuentasclaras.feature.balances.BalancesRoutes
+import app.cuentasclaras.feature.balances.balancesGraph
 import app.cuentasclaras.feature.expenses.ExpensesRoutes
 import app.cuentasclaras.feature.expenses.expensesGraph
 import app.cuentasclaras.feature.groups.GroupsRoutes
 import app.cuentasclaras.feature.groups.groupsGraph
 
 /**
- * Grafo del área autenticada: encadena el grafo de grupos con el de gastos en
- * un único `NavHost`.
+ * Grafo del área autenticada: encadena el grafo de grupos con el de gastos y el
+ * de balances en un único `NavHost`.
  *
- * Los dos grafos comparten prefijo (`groups/...` y `groups/{groupId}/expenses`),
- * pero el número de segmentos los hace inequívocos.
+ * Los tres comparten prefijo (`groups/...`, `groups/{groupId}/expenses` y
+ * `groups/{groupId}/balances`), pero el número de segmentos los hace inequívocos.
  *
  * @param currentUserId usuario con la sesión abierta; los destinos lo necesitan
  *   para decidir qué puede hacer (crear/editar/borrar) y a quién presuponer
@@ -39,9 +41,15 @@ fun AuthenticatedNavHost(
             currentUserId = currentUserId,
             onSignOut = onSignOut,
             onOpenExpenses = { groupId -> navController.navigate(ExpensesRoutes.list(groupId)) },
+            onOpenBalances = { groupId -> navController.navigate(BalancesRoutes.balances(groupId)) },
         )
 
         expensesGraph(
+            navController = navController,
+            currentUserId = currentUserId,
+        )
+
+        balancesGraph(
             navController = navController,
             currentUserId = currentUserId,
         )

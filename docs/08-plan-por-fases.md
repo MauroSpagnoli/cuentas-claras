@@ -105,15 +105,20 @@ omite automáticamente cuando no hay Docker; sin Docker los tests de integració
 
 ---
 
-## Fase 7 · Android: balances y liquidación
+## Fase 7 · Android: balances y liquidación (completada)
 **Objetivo:** visualizar deudas y saldarlas.
 **Entregables:**
-- `feature/balances`: netos, pares y **plan de liquidación**.
-- Registrar un pago desde la sugerencia.
-- Gráficos/estados vacíos y de error.
+- [x] `feature/balances`: netos, pares y **plan de liquidación**.
+- [x] Registrar un pago desde la sugerencia (formulario prerrellenado + `POST` idempotente).
+- [x] Gráficos/estados vacíos y de error.
+- [x] Historia de pagos paginada por cursor (`GET /groups/{id}/settlements`).
 **Criterios de aceptación:**
-- Coincide con el backend (mismos números).
-- Registrar un pago actualiza los balances.
+- [x] Coincide con el backend (mismos números).
+- [x] Registrar un pago actualiza los balances.
+**Verificación:**
+- `:app:assembleDebug`, `:app:lintDebug` y `:app:assembleDebugAndroidTest` compilan.
+- 63 tests unitarios en verde (dominio, `core:network`, `data`, `feature/*`), incluidos `BalancesViewModelTest`, `SettlementFormViewModelTest`, `SettlementHistoryViewModelTest`, `SettlementPagingSourceTest` y `BalancesApiTest`.
+- Test instrumentado end-to-end contra backend real (`BalancesEndToEndTest`): gasto a medias → netos y pares del backend → registrar el pago sugerido → balances a cero.
 
 ---
 

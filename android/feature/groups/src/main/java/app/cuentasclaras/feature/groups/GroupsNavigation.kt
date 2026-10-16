@@ -31,12 +31,14 @@ object GroupsRoutes {
  *   decidir sobre qué miembros puede actuar.
  * @param onSignOut cierre de sesión, resuelto por el grafo raíz.
  * @param onOpenExpenses abre el listado de gastos del grupo elegido.
+ * @param onOpenBalances abre los balances y el plan de liquidación del grupo.
  */
 fun NavGraphBuilder.groupsGraph(
     navController: NavHostController,
     currentUserId: String,
     onSignOut: () -> Unit,
     onOpenExpenses: (groupId: String) -> Unit,
+    onOpenBalances: (groupId: String) -> Unit,
 ) {
     composable(GroupsRoutes.LIST) {
         GroupsListEntry(
@@ -58,6 +60,7 @@ fun NavGraphBuilder.groupsGraph(
             currentUserId = currentUserId,
             onBack = { navController.popBackStack() },
             onOpenExpenses = onOpenExpenses,
+            onOpenBalances = onOpenBalances,
         )
     }
 }

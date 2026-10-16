@@ -62,6 +62,7 @@ fun GroupDetailEntry(
     currentUserId: String,
     onBack: () -> Unit,
     onOpenExpenses: (groupId: String) -> Unit,
+    onOpenBalances: (groupId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GroupDetailViewModel = hiltViewModel(),
 ) {
@@ -73,6 +74,7 @@ fun GroupDetailEntry(
         onEvent = viewModel::onEvent,
         onBack = onBack,
         onOpenExpenses = { onOpenExpenses(viewModel.groupId) },
+        onOpenBalances = { onOpenBalances(viewModel.groupId) },
         modifier = modifier,
     )
 }
@@ -85,6 +87,7 @@ fun GroupDetailScreen(
     onEvent: (GroupDetailEvent) -> Unit,
     onBack: () -> Unit,
     onOpenExpenses: () -> Unit,
+    onOpenBalances: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -142,24 +145,17 @@ fun GroupDetailScreen(
                     }
 
                     item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(onClick = onOpenExpenses)
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.group_detail_expenses),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                            )
-                        }
-                        HorizontalDivider()
+                        NavigationRow(
+                            label = stringResource(R.string.group_detail_expenses),
+                            onClick = onOpenExpenses,
+                        )
+                    }
+
+                    item {
+                        NavigationRow(
+                            label = stringResource(R.string.group_detail_balances),
+                            onClick = onOpenBalances,
+                        )
                     }
 
                     item {
@@ -247,6 +243,32 @@ private fun GroupSummary(group: Group, modifier: Modifier = Modifier) {
         }
         HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
     }
+}
+
+@Composable
+private fun NavigationRow(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+        )
+    }
+    HorizontalDivider()
 }
 
 @Composable

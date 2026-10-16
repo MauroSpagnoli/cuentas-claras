@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Balances -->
+    <string name="balances_title">Balances</string>
+    <string name="balances_back">Volver</string>
+    <string name="balances_refresh">Actualizar</string>
+    <string name="balances_loading">Cargando balances…</string>
+    <string name="balances_retry">Reintentar</string>
+    <string name="balances_net_header">Balances netos</string>
+    <string name="balances_net_positive">Le deben %1$s</string>
+    <string name="balances_net_negative">Debe %1$s</string>
+    <string name="balances_net_zero">En paz</string>
+    <string name="balances_you">Tú</string>
+    <string name="balances_empty_title">Todo saldado</string>
+    <string name="balances_empty_body">No hay deudas pendientes en este grupo.</string>
+    <string name="balances_plan_header">Plan de liquidación</string>
+    <string name="balances_plan_subtitle">%1$s · %2$d movimientos</string>
+    <string name="balances_plan_count">%1$d movimientos</string>
+    <string name="balances_plan_empty">No hay transferencias pendientes.</string>
+    <string name="balances_unknown_member">Miembro</string>
+    <string name="balances_debt_line">%1$s paga a %2$s</string>
+    <string name="balances_register">Registrar pago</string>
+    <string name="balances_register_short">Registrar</string>
+    <string name="balances_history">Historia de pagos</string>
+
+    <!-- Historia de pagos -->
+    <string name="settlement_history_title">Historia de pagos</string>
+    <string name="settlement_history_loading">Cargando pagos…</string>
+    <string name="settlement_history_loading_more">Cargando más…</string>
+    <string name="settlement_history_empty_title">Sin pagos</string>
+    <string name="settlement_history_empty_body">Todavía no se ha registrado ningún pago en este grupo.</string>
+    <string name="settlement_history_line">%1$s pagó a %2$s</string>
+
+    <!-- Formulario de pago -->
+    <string name="settlement_form_title">Registrar pago</string>
+    <string name="settlement_form_parties">Entre</string>
+    <string name="settlement_form_from">Quién paga</string>
+    <string name="settlement_form_to">Quién cobra</string>
+    <string name="settlement_form_choose">Elegir…</string>
+    <string name="settlement_form_amount">Importe</string>
+    <string name="settlement_form_date">Fecha</string>
+    <string name="settlement_form_note">Nota (opcional)</string>
+    <string name="settlement_form_members_empty">El grupo no tiene miembros activos.</string>
+    <string name="settlement_form_accept">Aceptar</string>
+    <string name="settlement_form_cancel">Cancelar</string>
+    <string name="settlement_form_submit">Guardar</string>
+
+    <!-- Validación -->
+    <string name="settlement_issue_required">Este campo es obligatorio</string>
+    <string name="settlement_issue_same_party">Quien paga y quien cobra deben ser distintos</string>
+    <string name="settlement_issue_invalid_amount">Introduce un importe válido (por ejemplo 12,50)</string>
+    <string name="settlement_issue_amount_not_positive">El importe debe ser mayor que cero</string>
+    <string name="settlement_issue_invalid_date">Introduce una fecha válida</string>
+    <string name="settlement_issue_too_long">Máximo %1$d caracteres</string>
+
+    <!-- Etiquetas de algoritmo -->
+    <string name="balances_algorithm_min_exact">min. exacto</string>
+    <string name="balances_algorithm_greedy">voraz</string>
+
+    <!-- Errores de API -->
+    <string name="balances_error_network">No hay conexión con el servidor</string>
+    <string name="balances_error_unauthorized">La sesión ha caducado</string>
+    <string name="balances_error_forbidden">No tienes permiso sobre este grupo</string>
+    <string name="balances_error_not_found">El grupo ya no existe</string>
+    <string name="balances_error_conflict">El grupo cambió mientras lo mirabas; vuelve a cargar</string>
+    <string name="balances_error_validation">Revisa los datos introducidos</string>
+    <string name="balances_error_server">El servidor no está disponible</string>
+    <string name="balances_error_unexpected">Ha ocurrido un error inesperado</string>
+</resources>

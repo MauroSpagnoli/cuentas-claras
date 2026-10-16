@@ -39,10 +39,10 @@ fun SettlementIssue.toMessage(): String = when (this) {
     is SettlementIssue.TooLong -> stringResource(R.string.settlement_issue_too_long, max)
 }
 
-/** Nombre legible del algoritmo del plan (`MIN_EXACT`, `GREEDY`). */
+/** Nombre legible del algoritmo del plan (`EXACT`, `GREEDY`). */
 @Composable
 fun planAlgorithmLabel(algorithm: String): String = when (algorithm.uppercase(Locale.US)) {
-    "MIN_EXACT" -> stringResource(R.string.balances_algorithm_min_exact)
+    "EXACT" -> stringResource(R.string.balances_algorithm_exact)
     "GREEDY" -> stringResource(R.string.balances_algorithm_greedy)
     else -> algorithm
 }

@@ -50,6 +50,8 @@ captures/
 application-local.yml
 application-local.properties
 secrets.properties
+keystore.properties
+keystore/
 
 # === Docker / datos locales ===
 pgdata/

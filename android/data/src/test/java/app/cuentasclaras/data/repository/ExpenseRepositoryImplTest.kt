@@ -13,15 +13,18 @@ import app.cuentasclaras.core.network.dto.ExpenseDto
 import app.cuentasclaras.core.network.dto.ExpenseShareDto
 import app.cuentasclaras.core.network.dto.PageDto
 import app.cuentasclaras.core.network.dto.UpdateExpenseRequestDto
+import app.cuentasclaras.data.sync.SyncScheduler
 import app.cuentasclaras.domain.error.AppError
 import app.cuentasclaras.domain.model.ExpenseDraft
 import app.cuentasclaras.domain.model.ExpenseShareInput
+import app.cuentasclaras.domain.model.OutboxOperation
 import app.cuentasclaras.domain.model.SplitType
 import app.cuentasclaras.domain.result.AppResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
+import java.io.IOException
 import java.math.BigDecimal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -45,6 +48,7 @@ class ExpenseRepositoryImplTest {
 
     private lateinit var database: CuentasClarasDatabase
     private val api: ExpensesApi = mockk()
+    private val scheduler: SyncScheduler = mockk(relaxed = true)
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -64,6 +68,8 @@ class ExpenseRepositoryImplTest {
             api,
             database,
             database.expenseDao(),
+            database.outboxDao(),
+            scheduler,
             json,
             Dispatchers.IO,
         )
@@ -208,6 +214,107 @@ class ExpenseRepositoryImplTest {
 
         assertEquals(AppError.Forbidden, (result as AppResult.Failure).error)
         assertEquals("Cena", database.expenseDao().observeById("e-1").first()?.description)
+    }
+
+    // --- Offline-first (outbox) -------------------------------------------------------
+
+    @Test
+    fun `createExpense without network caches it optimistically and enqueues it`() = runTest {
+        coEvery { api.create("g-1", any()) } throws IOException("sin red")
+
+        val result = repository.createExpense("g-1", draft())
+
+        val expense = (result as AppResult.Success).value
+        assertEquals(OutboxOperation.CREATE, expense.pendingOperation)
+
+        val cached = database.expenseDao().observeById(expense.id).first()
+        assertEquals("Cena", cached?.description)
+        assertEquals(OutboxOperation.CREATE.name, cached?.pendingOperation)
+
+        val pending = database.outboxDao().pending(10)
+        assertEquals(1, pending.size)
+        assertEquals(OutboxOperation.CREATE.name, pending.single().operation)
+        assertEquals(expense.id, pending.single().entityId)
+        coVerify { scheduler.schedule() }
+    }
+
+    @Test
+    fun `updateExpense without network updates the cache and enqueues an update`() = runTest {
+        cacheExpense(expenseDto("e-1", version = 1))
+        coEvery { api.update("e-1", any()) } throws IOException("sin red")
+
+        val result = repository.updateExpense("e-1", draft(category = "Ocio", version = 1))
+
+        val expense = (result as AppResult.Success).value
+        assertEquals(OutboxOperation.UPDATE, expense.pendingOperation)
+
+        val cached = database.expenseDao().observeById("e-1").first()
+        assertEquals("Ocio", cached?.category)
+        assertEquals(OutboxOperation.UPDATE.name, cached?.pendingOperation)
+        assertEquals(OutboxOperation.UPDATE.name, database.outboxDao().pending(10).single().operation)
+    }
+
+    @Test
+    fun `deleteExpense without network removes the cache and enqueues a delete`() = runTest {
+        cacheExpense(expenseDto("e-1"))
+        coEvery { api.delete("e-1") } throws IOException("sin red")
+
+        val result = repository.deleteExpense("e-1")
+
+        assertTrue(result is AppResult.Success)
+        assertNull(database.expenseDao().observeById("e-1").first())
+        assertEquals(OutboxOperation.DELETE.name, database.outboxDao().pending(10).single().operation)
+    }
+
+    @Test
+    fun `an offline update of a pending create rewrites the create instead of queueing an update`() = runTest {
+        coEvery { api.create("g-1", any()) } throws IOException("sin red")
+        val created = (repository.createExpense("g-1", draft()) as AppResult.Success).value
+
+        coEvery { api.update(created.id, any()) } throws IOException("sin red")
+        repository.updateExpense(created.id, draft(category = "Ocio"))
+
+        val pending = database.outboxDao().pending(10)
+        assertEquals(1, pending.size)
+        assertEquals(OutboxOperation.CREATE.name, pending.single().operation)
+        assertEquals(created.id, pending.single().entityId)
+    }
+
+    @Test
+    fun `deleting an unsynced create cancels the operation`() = runTest {
+        coEvery { api.create("g-1", any()) } throws IOException("sin red")
+        val created = (repository.createExpense("g-1", draft()) as AppResult.Success).value
+
+        coEvery { api.delete(created.id) } throws IOException("sin red")
+        repository.deleteExpense(created.id)
+
+        assertEquals(0, database.outboxDao().pending(10).size)
+        assertNull(database.expenseDao().observeById(created.id).first())
+    }
+
+    @Test
+    fun `observeSyncFailures maps failed outbox rows`() = runTest {
+        database.outboxDao().enqueue(
+            app.cuentasclaras.core.database.entity.OutboxEntity(
+                id = "op-1",
+                entityType = "EXPENSE",
+                entityId = "e-1",
+                groupId = "g-1",
+                operation = OutboxOperation.UPDATE.name,
+                payload = "{}",
+                status = "FAILED",
+                attempts = 1,
+                lastErrorCode = "CONFLICT",
+                lastError = "Version desactualizada",
+                createdAt = 1L,
+            ),
+        )
+
+        val failures = repository.observeSyncFailures("g-1").first()
+
+        assertEquals(1, failures.size)
+        assertEquals("e-1", failures.single().entityId)
+        assertEquals(AppError.Conflict("Version desactualizada"), failures.single().error)
     }
 
     @Test

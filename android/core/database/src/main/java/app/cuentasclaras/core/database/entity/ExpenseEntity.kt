@@ -11,6 +11,10 @@ import androidx.room.PrimaryKey
  *
  * El índice `(groupId, expenseDate)` sirve al listado paginado, que siempre
  * filtra por grupo y ordena por fecha descendente.
+ *
+ * `pendingOperation` es nulo cuando el gasto está sincronizado; en caso
+ * contrario indica la mutación optimista que aún está en el outbox
+ * (`CREATE`/`UPDATE`), para que la UI la muestre como pendiente.
  */
 @Entity(
     tableName = "expenses",
@@ -30,4 +34,5 @@ data class ExpenseEntity(
     val createdBy: String,
     val createdAt: String?,
     val version: Long,
+    val pendingOperation: String? = null,
 )

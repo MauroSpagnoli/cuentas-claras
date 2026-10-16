@@ -10,6 +10,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import app.cuentasclaras.core.database.CuentasClarasDatabase
 import app.cuentasclaras.core.database.entity.ExpenseEntity
+import app.cuentasclaras.core.database.entity.ExpenseShareEntity
 import app.cuentasclaras.core.database.entity.ExpenseSyncStateEntity
 import app.cuentasclaras.core.network.api.ExpensesApi
 import app.cuentasclaras.core.network.dto.ExpenseDto
@@ -98,6 +99,39 @@ class ExpenseRemoteMediatorTest {
 
         assertEquals(listOf("e-1"), cachedIds("g-1"))
         assertEquals(listOf("other"), cachedIds("g-2"))
+    }
+
+    @Test
+    fun `refresh preserves the expenses that are still pending to sync`() = runTest {
+        database.expenseDao().upsert(
+            expenseEntity("local-1", groupId = "g-1").copy(pendingOperation = "CREATE"),
+        )
+        database.expenseDao().upsertShares(
+            listOf(ExpenseShareEntity("local-1", "u-1", 3000, null, null)),
+        )
+        everyListReturns(pageOf(expense("e-1"), cursor = null, hasMore = false))
+
+        mediator("g-1", UnconfinedTestDispatcher(testScheduler)).load(LoadType.REFRESH, pagingState())
+
+        assertEquals(setOf("e-1", "local-1"), cachedIds("g-1").toSet())
+        assertEquals(1, database.expenseDao().observeShares("local-1").first().size)
+    }
+
+    @Test
+    fun `refresh does not overwrite a pending edit with the server version`() = runTest {
+        database.expenseDao().upsert(
+            expenseEntity("e-1", groupId = "g-1").copy(
+                description = "Editado sin red",
+                pendingOperation = "UPDATE",
+            ),
+        )
+        everyListReturns(pageOf(expense("e-1"), cursor = null, hasMore = false))
+
+        mediator("g-1", UnconfinedTestDispatcher(testScheduler)).load(LoadType.REFRESH, pagingState())
+
+        val cached = database.expenseDao().observeById("e-1").first()
+        assertEquals("Editado sin red", cached?.description)
+        assertEquals("UPDATE", cached?.pendingOperation)
     }
 
     @Test

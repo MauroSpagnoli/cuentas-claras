@@ -89,6 +89,10 @@ class AuthRepositoryImpl @Inject constructor(
                 } else {
                     val tokens = result.value.toStoredTokens(nowEpochSeconds())
                     tokenStore.save(tokens)
+                    // `current_user` es una tabla de una sola fila: al cambiar de
+                    // sesión hay que descartar la anterior (si no, `LIMIT 1`
+                    // devolvería un usuario antiguo arbitrario).
+                    userDao.clear()
                     userDao.upsert(user.toEntity())
                     AppResult.Success(AuthSession(user = user.toDomain(), tokens = tokens))
                 }

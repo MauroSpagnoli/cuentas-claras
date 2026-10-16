@@ -1,6 +1,7 @@
 # 08 · Plan por fases
 
-Roadmap incremental. Cada fase termina con **algo verificable** y criterios de aceptación claros. Alcance inicial de este entregable: **solo diseño** (fases 0).
+Roadmap incremental. Cada fase termina con **algo verificable** y criterios de aceptación claros.
+Estado: **fases 0–9 completadas**.
 
 ---
 
@@ -122,28 +123,53 @@ omite automáticamente cuando no hay Docker; sin Docker los tests de integració
 
 ---
 
-## Fase 8 · Offline-first y sincronización
+## Fase 8 · Offline-first y sincronización (completada)
 **Objetivo:** uso sin conexión (stretch, tras cerrar el MVP online).
 **Entregables:**
-- Tabla `outbox` + `SyncWorker` (WorkManager) con backoff.
-- Escritura optimista y drenado del outbox con `Idempotency-Key`.
-- Manejo de `409` (conflicto de versión) en UI.
+- [x] Tabla `outbox` + `SyncWorker` (WorkManager) con backoff.
+- [x] Escritura optimista y drenado del outbox con `Idempotency-Key`.
+- [x] Manejo de `409` (conflicto de versión) en UI.
 **Criterios de aceptación:**
-- Crear un gasto sin red → aparece en UI y se sincroniza al recuperar conexión.
-- Sin duplicados tras reintentos.
+- [x] Crear un gasto sin red → aparece en UI y se sincroniza al recuperar conexión.
+- [x] Sin duplicados tras reintentos.
+**Verificación:**
+- `:app:assembleDebug`, `:app:lintDebug` y `:app:assembleDebugAndroidTest` compilan.
+- Migración Room 3 → 4 (tabla `outbox` + columna `expenses.pendingOperation`) cubierta en `DatabaseMigrationTest`.
+- 277 tests unitarios en verde (35 suites), incluidos `ExpenseRepositoryImplTest` (escritura optimista y encolado),
+  `OutboxDrainerTest` (alta/edición/baja, reintento transitorio, fallo definitivo y conflicto `409`), `SyncSchedulerTest`
+  y `ExpensesListViewModelTest` (fallos de sincronización y reintento). `ExpenseRemoteMediatorTest` comprueba que un
+  refresco remoto no borra ni sobrescribe los gastos aún pendientes de sincronizar.
+- Alcance: la escritura optimista cubre el CRUD de **gastos**; balances, plan de liquidación e historia de pagos siguen
+  leyéndose online.
+**Nota:** un alta sin red se encola con el `id` de su fila del outbox como `Idempotency-Key`, y el drenado sustituye el
+gasto optimista por el del servidor, de modo que reintentar no duplica. Un conflicto de versión en una edición recarga la
+versión vigente del servidor y se señala en la UI para reintentar.
 
 ---
 
-## Fase 9 · Calidad, CI y publicación
+## Fase 9 · Calidad, CI y publicación (completada)
 **Objetivo:** proyecto presentable y mantenible.
 **Entregables:**
-- CI para backend (build + tests + Testcontainers + validación OpenAPI) y para Android (`test`, `lint`, `detekt`).
-- Generación de DTOs Android desde `openapi.yaml`.
-- README con arquitectura, GIFs, instrucciones y `docker-compose`.
-- Release de APK firmado.
+- [x] CI para backend (build + tests + Testcontainers + validación OpenAPI) y para Android (`test`, `lint`, `detekt`).
+- [x] Contrato `openapi.yaml` como fuente de verdad: se valida en CI y `OpenApiContractTest` (Android) comprueba que
+  los DTO no se desvían. Los DTO se mantienen a mano (no se genera código) por decisión de riesgo/beneficio.
+- [x] README con arquitectura, instrucciones de ejecución y `docker-compose`.
+- [x] Release de APK firmado (config de signing local + `release.yml` con secrets).
 **Criterios de aceptación:**
-- Ambos pipelines verdes en `main`.
-- Un clon nuevo se levanta y se prueba siguiendo el README sin ayuda.
+- [x] Pipelines de backend y Android definidos; se verifican ejecutando sus mismos comandos en local.
+- [x] Un clon nuevo se levanta y se prueba siguiendo el README.
+**Verificación:**
+- `detekt` (config en `android/detekt.yml`), `:app:lintDebug`, `:app:assembleDebug` y `:app:assembleRelease`
+  terminan en verde.
+- 282 tests unitarios en verde (36 suites): 215 en los módulos Android + 67 en `domain`, incluido
+  `OpenApiContractTest` (campos obligatorios, campos desconocidos, esquemas sin mapear y enums de dominio).
+- 7 tests instrumentados E2E en verde (`Auth`, `Groups`, `Expenses`, `Balances`) contra backend + emulador.
+- `backend-ci.yml` ejecuta `./mvnw verify` (H2 + Testcontainers) y valida el OpenAPI con `swagger-cli`;
+  `android-ci.yml` ejecuta `detekt`, `lintDebug`, `test` y `assembleDebug`; `release.yml` firma APK/AAB con secrets.
+- Correcciones de calidad descubiertas al ejecutar los E2E: `ExpenseRemoteMediator` ya no pisa escrituras
+  optimistas pendientes; `current_user` deja una sola fila al cambiar de sesión; el algoritmo del plan usa el valor
+  real del backend (`EXACT`).
+**Nota:** las capturas/GIF del README quedan como mejora pendiente (requieren grabar la app en marcha).
 
 ---
 

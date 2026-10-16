@@ -11,12 +11,15 @@ import app.cuentasclaras.core.database.entity.ExpenseShareEntity
 import app.cuentasclaras.core.database.entity.ExpenseSyncStateEntity
 import app.cuentasclaras.core.database.entity.GroupEntity
 import app.cuentasclaras.core.database.entity.GroupSyncStateEntity
+import app.cuentasclaras.core.database.entity.OutboxEntity
 import app.cuentasclaras.core.database.migration.MIGRATION_1_2
 import app.cuentasclaras.core.database.migration.MIGRATION_2_3
+import app.cuentasclaras.core.database.migration.MIGRATION_3_4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,6 +39,9 @@ class DatabaseMigrationTest {
 
     /** Hash de identidad del esquema v2 (`core/database/schemas/.../2.json`). */
     private val version2IdentityHash = "475f8d7a166a8cf01460a1122358cfe6"
+
+    /** Hash de identidad del esquema v3 (`core/database/schemas/.../3.json`). */
+    private val version3IdentityHash = "204562e773d5c551f1643147efa7b63d"
 
     @Before
     fun deleteBefore() {
@@ -121,6 +127,39 @@ class DatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun `migracion 3 a 4 incorpora el outbox y la marca de pendiente`() = runTest {
+        createVersion3Database().close()
+
+        val database = openMigratedDatabase()
+        try {
+            assertEquals("demo@example.com", database.userDao().current()?.email)
+
+            // El gasto previo sobrevive y arranca sin operación pendiente.
+            val expense = database.expenseDao().observeById("e-1").first()
+            assertEquals("Cena", expense?.description)
+            assertNull(expense?.pendingOperation)
+
+            // La cola del outbox es usable tras la migración.
+            database.outboxDao().enqueue(sampleOutbox())
+            assertEquals(1, database.outboxDao().countPending())
+            assertEquals("op-1", database.outboxDao().pending(10).single().id)
+        } finally {
+            database.close()
+        }
+    }
+
+    private fun sampleOutbox(): OutboxEntity = OutboxEntity(
+        id = "op-1",
+        entityType = OutboxEntity.ENTITY_EXPENSE,
+        entityId = "e-1",
+        groupId = "g-1",
+        operation = OutboxEntity.OPERATION_UPDATE,
+        payload = "{}",
+        status = OutboxEntity.STATUS_PENDING,
+        createdAt = 1L,
+    )
+
     private fun sampleExpense(): ExpenseEntity = ExpenseEntity(
         id = "e-1",
         groupId = "g-1",
@@ -171,7 +210,7 @@ class DatabaseMigrationTest {
             CuentasClarasDatabase::class.java,
             DB_NAME,
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
 
     /** Esquema m��nimo de la v1 (solo el usuario) mǭs la tabla de identidad de Room. */
@@ -216,6 +255,49 @@ class DatabaseMigrationTest {
                         )
                         db.execSQL(
                             "UPDATE room_master_table SET identity_hash = '$version2IdentityHash' WHERE id = 42",
+                        )
+                    }
+
+                    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+                },
+            )
+            .build()
+
+        return FrameworkSQLiteOpenHelperFactory().create(configuration).writableDatabase
+    }
+
+    /**
+     * Crea una base de datos en la versión 3 con un usuario, un grupo y un gasto
+     * previos, aplicando a mano las migraciones 1 → 2 y 2 → 3 antes de entregarla.
+     */
+    private fun createVersion3Database(): SupportSQLiteDatabase {
+        val configuration = SupportSQLiteOpenHelper.Configuration.builder(context)
+            .name(DB_NAME)
+            .callback(
+                object : SupportSQLiteOpenHelper.Callback(3) {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        createVersion1Schema(db)
+                        db.execSQL(
+                            "INSERT INTO current_user " +
+                                "(id, email, displayName, defaultCurrency, locale, createdAt) " +
+                                "VALUES ('u-1', 'demo@example.com', 'Demo', 'EUR', NULL, NULL)",
+                        )
+                        MIGRATION_1_2.migrate(db)
+                        db.execSQL(
+                            "INSERT INTO `groups` " +
+                                "(id, name, description, currency, inviteCode, memberCount, createdAt, version) " +
+                                "VALUES ('g-1', 'Piso', NULL, 'EUR', NULL, 1, '2026-01-02T10:00:00Z', 0)",
+                        )
+                        MIGRATION_2_3.migrate(db)
+                        db.execSQL(
+                            "INSERT INTO `expenses` " +
+                                "(id, groupId, description, amountMinor, currency, paidByUserId, splitType, " +
+                                "category, expenseDate, notes, createdBy, createdAt, version) " +
+                                "VALUES ('e-1', 'g-1', 'Cena', 4250, 'EUR', 'u-1', 'EQUAL', NULL, " +
+                                "'2026-02-01', NULL, 'u-1', '2026-02-01T21:00:00Z', 1)",
+                        )
+                        db.execSQL(
+                            "UPDATE room_master_table SET identity_hash = '$version3IdentityHash' WHERE id = 42",
                         )
                     }
 

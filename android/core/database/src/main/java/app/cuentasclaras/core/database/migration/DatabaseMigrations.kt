@@ -95,6 +95,46 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+/**
+ * Migración 3 → 4: llega el modo offline-first. Se añade la tabla `outbox` (la
+ * cola de mutaciones pendientes de enviar al backend) y una marca de operación
+ * pendiente en los gastos cacheados.
+ *
+ * El SQL debe coincidir exactamente con el esquema que genera Room (columnas,
+ * nulabilidad, clave primaria e índices), o la validación de la migración
+ * fallará.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE `expenses` ADD COLUMN `pendingOperation` TEXT",
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `outbox` (" +
+                "`id` TEXT NOT NULL, " +
+                "`entityType` TEXT NOT NULL, " +
+                "`entityId` TEXT NOT NULL, " +
+                "`groupId` TEXT NOT NULL, " +
+                "`operation` TEXT NOT NULL, " +
+                "`payload` TEXT NOT NULL, " +
+                "`status` TEXT NOT NULL, " +
+                "`attempts` INTEGER NOT NULL, " +
+                "`lastErrorCode` TEXT, " +
+                "`lastError` TEXT, " +
+                "`createdAt` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`id`))",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_outbox_status_createdAt` " +
+                "ON `outbox` (`status`, `createdAt`)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_outbox_entityId` " +
+                "ON `outbox` (`entityId`)",
+        )
+    }
+}
+
 /** Todas las migraciones de la base de datos, en orden. */
-val DATABASE_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+val DATABASE_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 

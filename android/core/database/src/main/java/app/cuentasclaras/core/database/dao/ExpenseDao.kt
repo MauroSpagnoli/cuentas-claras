@@ -23,6 +23,9 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE id = :expenseId")
     fun observeById(expenseId: String): Flow<ExpenseEntity?>
 
+    @Query("SELECT * FROM expenses WHERE id = :expenseId")
+    suspend fun getById(expenseId: String): ExpenseEntity?
+
     @Query("SELECT * FROM expense_shares WHERE expenseId = :expenseId ORDER BY userId ASC")
     fun observeShares(expenseId: String): Flow<List<ExpenseShareEntity>>
 
@@ -35,6 +38,13 @@ interface ExpenseDao {
     @Query("DELETE FROM expenses WHERE groupId = :groupId")
     suspend fun clearExpenses(groupId: String)
 
+    /**
+     * Borra los gastos del grupo ya sincronizados, preservando los que tienen una
+     * mutación pendiente en el outbox (escritura optimista sin confirmar).
+     */
+    @Query("DELETE FROM expenses WHERE groupId = :groupId AND pendingOperation IS NULL")
+    suspend fun deleteSyncedExpenses(groupId: String)
+
     @Query("DELETE FROM expenses WHERE id = :expenseId")
     suspend fun deleteExpense(expenseId: String)
 
@@ -46,6 +56,17 @@ interface ExpenseDao {
 
     @Query("DELETE FROM expense_shares WHERE expenseId IN (SELECT id FROM expenses WHERE groupId = :groupId)")
     suspend fun clearSharesOfGroup(groupId: String)
+
+    /** Borra las partes de los gastos sincronizados del grupo (no toca las pendientes). */
+    @Query(
+        "DELETE FROM expense_shares WHERE expenseId IN " +
+            "(SELECT id FROM expenses WHERE groupId = :groupId AND pendingOperation IS NULL)",
+    )
+    suspend fun clearSharesOfSyncedExpenses(groupId: String)
+
+    /** Ids de los gastos del grupo con una mutación aún sin sincronizar. */
+    @Query("SELECT id FROM expenses WHERE groupId = :groupId AND pendingOperation IS NOT NULL")
+    suspend fun pendingExpenseIds(groupId: String): List<String>
 
     @Query("SELECT * FROM expense_sync_state WHERE groupId = :groupId")
     suspend fun syncState(groupId: String): ExpenseSyncStateEntity?

@@ -23,6 +23,9 @@ interface GroupDao {
     @Query("SELECT * FROM groups WHERE id = :groupId")
     fun observeById(groupId: String): Flow<GroupEntity?>
 
+    @Query("SELECT * FROM groups WHERE id = :groupId")
+    suspend fun getById(groupId: String): GroupEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(group: GroupEntity)
 

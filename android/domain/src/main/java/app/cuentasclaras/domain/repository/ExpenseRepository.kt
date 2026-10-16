@@ -3,6 +3,7 @@ package app.cuentasclaras.domain.repository
 import androidx.paging.PagingData
 import app.cuentasclaras.domain.model.Expense
 import app.cuentasclaras.domain.model.ExpenseDraft
+import app.cuentasclaras.domain.model.SyncFailure
 import app.cuentasclaras.domain.result.AppResult
 import kotlinx.coroutines.flow.Flow
 
@@ -11,9 +12,13 @@ import kotlinx.coroutines.flow.Flow
  *
  * Room es la fuente de verdad: [observeExpenses] y [observeExpense] emiten desde
  * la caché local y la red solo la rellena (paginación con `Paging 3` +
- * `RemoteMediator`). Las altas, ediciones y bajas llaman al backend y actualizan
- * la caché para que el cambio se vea al instante; el siguiente refresco vuelve a
- * traer del servidor el estado definitivo.
+ * `RemoteMediator`).
+ *
+ * Las altas, ediciones y bajas son **offline-first**: si hay red se aplican en
+ * el servidor y se cachea la respuesta; si no la hay, el cambio se refleja de
+ * forma optimista en Room y se encola en el outbox para sincronizarlo más tarde
+ * (sin duplicados, gracias a la `Idempotency-Key`). El gasto afectado queda con
+ * [Expense.pendingOperation] hasta que el servidor lo confirma.
  */
 interface ExpenseRepository {
 
@@ -26,12 +31,30 @@ interface ExpenseRepository {
     /** Recarga el gasto desde la red y actualiza la caché. */
     suspend fun refreshExpense(expenseId: String): AppResult<Expense>
 
-    /** Crea un gasto en el grupo y lo cachea. */
+    /**
+     * Alta de gasto. Con red, espera la respuesta del servidor; sin red, la
+     * aplica de forma optimista y la encola en el outbox.
+     */
     suspend fun createExpense(groupId: String, draft: ExpenseDraft): AppResult<Expense>
 
-    /** Edita un gasto y actualiza la caché. */
+    /**
+     * Edición de gasto. Con red, aplica el `PATCH`; sin red, actualiza la caché
+     * de forma optimista y encola la operación.
+     */
     suspend fun updateExpense(expenseId: String, draft: ExpenseDraft): AppResult<Expense>
 
-    /** Da de baja un gasto en el backend y lo quita de la caché. */
+    /**
+     * Baja de gasto. Con red, la confirma el servidor; sin red, la quita de la
+     * caché de forma optimista y encola la operación.
+     */
     suspend fun deleteExpense(expenseId: String): AppResult<Unit>
+
+    /**
+     * Fallos de sincronización definitivos de un grupo (no se reintentan solos),
+     * para que la UI avise y ofrezca reintentar.
+     */
+    fun observeSyncFailures(groupId: String): Flow<List<SyncFailure>>
+
+    /** Devuelve las operaciones fallidas a la cola y relanza la sincronización. */
+    suspend fun retrySync(groupId: String)
 }

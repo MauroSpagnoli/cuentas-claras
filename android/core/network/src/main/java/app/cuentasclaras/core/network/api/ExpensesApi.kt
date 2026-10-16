@@ -8,6 +8,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -23,10 +24,16 @@ interface ExpensesApi {
         @Query("cursor") cursor: String? = null,
     ): Response<PageDto<ExpenseDto>>
 
+    /**
+     * Alta de gasto. La [idempotencyKey] la fija el outbox para que los
+     * reintentos no dupliquen el gasto; cuando se omite la añade el
+     * `IdempotencyInterceptor`.
+     */
     @POST("groups/{groupId}/expenses")
     suspend fun create(
         @Path("groupId") groupId: String,
         @Body body: CreateExpenseRequestDto,
+        @Header("Idempotency-Key") idempotencyKey: String? = null,
     ): Response<ExpenseDto>
 
     @GET("expenses/{expenseId}")
@@ -36,9 +43,13 @@ interface ExpensesApi {
     suspend fun update(
         @Path("expenseId") expenseId: String,
         @Body body: UpdateExpenseRequestDto,
+        @Header("Idempotency-Key") idempotencyKey: String? = null,
     ): Response<ExpenseDto>
 
     /** Baja lógica del gasto: responde `204 No Content`. */
     @DELETE("expenses/{expenseId}")
-    suspend fun delete(@Path("expenseId") expenseId: String): Response<Unit>
+    suspend fun delete(
+        @Path("expenseId") expenseId: String,
+        @Header("Idempotency-Key") idempotencyKey: String? = null,
+    ): Response<Unit>
 }

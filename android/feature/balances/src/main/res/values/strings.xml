@@ -54,7 +54,7 @@
     <string name="settlement_issue_too_long">Máximo %1$d caracteres</string>
 
     <!-- Etiquetas de algoritmo -->
-    <string name="balances_algorithm_min_exact">min. exacto</string>
+    <string name="balances_algorithm_exact">min. exacto</string>
     <string name="balances_algorithm_greedy">voraz</string>
 
     <!-- Errores de API -->

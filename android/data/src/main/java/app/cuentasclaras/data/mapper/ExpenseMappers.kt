@@ -9,6 +9,7 @@ import app.cuentasclaras.core.network.dto.ExpenseShareInputDto
 import app.cuentasclaras.core.network.dto.UpdateExpenseRequestDto
 import app.cuentasclaras.domain.model.Expense
 import app.cuentasclaras.domain.model.ExpenseDraft
+import app.cuentasclaras.domain.model.OutboxOperation
 import app.cuentasclaras.domain.model.ExpenseShare
 import app.cuentasclaras.domain.model.ExpenseShareInput
 import app.cuentasclaras.domain.model.SplitType
@@ -78,6 +79,7 @@ fun ExpenseEntity.toDomain(): Expense = Expense(
     notes = notes,
     createdAt = createdAt,
     version = version,
+    pendingOperation = OutboxOperation.fromStorage(pendingOperation),
 )
 
 fun ExpenseEntity.toDomain(shares: List<ExpenseShare>): Expense = toDomain().copy(shares = shares)

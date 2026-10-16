@@ -61,6 +61,11 @@
     <string name="expense_form_submit">Guardar</string>
     <string name="expense_form_submit_editing">Guardar cambios</string>
 
+    <!-- Sincronización offline -->
+    <string name="expenses_pending_sync">Sin sincronizar</string>
+    <string name="expenses_sync_failed_title">Algunos cambios no se han sincronizado</string>
+    <string name="expenses_sync_retry">Reintentar</string>
+
     <!-- Validación -->
     <string name="expense_issue_required">Este campo es obligatorio</string>
     <string name="expense_issue_too_long">Máximo %1$d caracteres</string>

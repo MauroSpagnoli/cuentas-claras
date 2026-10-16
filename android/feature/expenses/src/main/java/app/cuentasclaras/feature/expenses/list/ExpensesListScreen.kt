@@ -45,6 +45,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import app.cuentasclaras.core.designsystem.component.ErrorBanner
 import app.cuentasclaras.domain.model.Expense
+import app.cuentasclaras.domain.model.SyncFailure
 import app.cuentasclaras.feature.expenses.ExpensesFormat
 import app.cuentasclaras.feature.expenses.R
 import app.cuentasclaras.feature.expenses.label
@@ -67,6 +68,7 @@ fun ExpensesListEntry(
         onBack = onBack,
         onOpenExpense = { expenseId -> onOpenExpense(viewModel.groupId, expenseId) },
         onCreateExpense = { onCreateExpense(viewModel.groupId) },
+        onRetrySync = viewModel::retrySync,
         modifier = modifier,
     )
 }
@@ -79,6 +81,7 @@ fun ExpensesListScreen(
     onBack: () -> Unit,
     onOpenExpense: (String) -> Unit,
     onCreateExpense: () -> Unit,
+    onRetrySync: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -115,7 +118,9 @@ fun ExpensesListScreen(
         ExpensesListContent(
             expenses = expenses,
             memberName = { state.memberName(it) },
+            syncFailures = state.syncFailures,
             onOpenExpense = onOpenExpense,
+            onRetrySync = onRetrySync,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -127,68 +132,83 @@ fun ExpensesListScreen(
 private fun ExpensesListContent(
     expenses: LazyPagingItems<Expense>,
     memberName: (String) -> String?,
+    syncFailures: List<SyncFailure>,
     onOpenExpense: (String) -> Unit,
+    onRetrySync: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val refresh = expenses.loadState.refresh
-
-    when {
-        refresh is LoadState.Loading && expenses.itemCount == 0 -> ProgressScreen(
-            message = stringResource(R.string.expenses_loading),
-            modifier = modifier,
-        )
-
-        refresh is LoadState.Error && expenses.itemCount == 0 -> Column(
-            modifier = modifier.padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            ErrorBanner(message = refresh.error.toMessage())
-            Spacer(Modifier.height(16.dp))
-            OutlinedButton(onClick = expenses::retry) {
-                Text(stringResource(R.string.expenses_retry))
-            }
+    Column(modifier = modifier) {
+        if (syncFailures.isNotEmpty()) {
+            SyncFailuresBanner(
+                message = syncFailures.first().error.toMessage(),
+                onRetry = onRetrySync,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+            )
         }
 
-        expenses.itemCount == 0 -> EmptyExpenses(modifier = modifier)
+        val contentModifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+        val refresh = expenses.loadState.refresh
 
-        else -> LazyColumn(
-            modifier = modifier,
-            contentPadding = PaddingValues(bottom = 96.dp),
-        ) {
-            items(
-                count = expenses.itemCount,
-                key = expenses.itemKey { it.id },
-            ) { index ->
-                expenses[index]?.let { expense ->
-                    ExpenseRow(
-                        expense = expense,
-                        payerName = memberName(expense.paidByUserId),
-                        onClick = { onOpenExpense(expense.id) },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                    )
+        when {
+            refresh is LoadState.Loading && expenses.itemCount == 0 -> ProgressScreen(
+                message = stringResource(R.string.expenses_loading),
+                modifier = contentModifier,
+            )
+
+            refresh is LoadState.Error && expenses.itemCount == 0 -> Column(
+                modifier = contentModifier.padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                ErrorBanner(message = refresh.error.toMessage())
+                Spacer(Modifier.height(16.dp))
+                OutlinedButton(onClick = expenses::retry) {
+                    Text(stringResource(R.string.expenses_retry))
                 }
             }
 
-            when (val append = expenses.loadState.append) {
-                is LoadState.Loading -> item {
-                    ProgressScreen(
-                        message = stringResource(R.string.expenses_loading_more),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+            expenses.itemCount == 0 -> EmptyExpenses(modifier = contentModifier)
 
-                is LoadState.Error -> item {
-                    Column(Modifier.padding(16.dp)) {
-                        ErrorBanner(message = append.error.toMessage())
-                        Spacer(Modifier.height(8.dp))
-                        OutlinedButton(onClick = expenses::retry) {
-                            Text(stringResource(R.string.expenses_retry))
-                        }
+            else -> LazyColumn(
+                modifier = contentModifier,
+                contentPadding = PaddingValues(bottom = 96.dp),
+            ) {
+                items(
+                    count = expenses.itemCount,
+                    key = expenses.itemKey { it.id },
+                ) { index ->
+                    expenses[index]?.let { expense ->
+                        ExpenseRow(
+                            expense = expense,
+                            payerName = memberName(expense.paidByUserId),
+                            onClick = { onOpenExpense(expense.id) },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
                     }
                 }
 
-                else -> Unit
+                when (val append = expenses.loadState.append) {
+                    is LoadState.Loading -> item {
+                        ProgressScreen(
+                            message = stringResource(R.string.expenses_loading_more),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    is LoadState.Error -> item {
+                        Column(Modifier.padding(16.dp)) {
+                            ErrorBanner(message = append.error.toMessage())
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(onClick = expenses::retry) {
+                                Text(stringResource(R.string.expenses_retry))
+                            }
+                        }
+                    }
+
+                    else -> Unit
+                }
             }
         }
     }
@@ -220,6 +240,14 @@ private fun ExpenseRow(
                 Text(
                     text = ExpensesFormat.amount(expense.amountMinor, expense.currency),
                     style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            if (expense.pendingOperation != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.expenses_pending_sync),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.tertiary,
                 )
             }
             Spacer(Modifier.height(4.dp))
@@ -254,6 +282,32 @@ private fun ExpenseRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SyncFailuresBanner(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(modifier = modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.expenses_sync_failed_title),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onRetry) {
+                Text(stringResource(R.string.expenses_sync_retry))
             }
         }
     }

@@ -7,6 +7,8 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import app.cuentasclaras.domain.model.Expense
 import app.cuentasclaras.domain.usecase.expenses.ObserveExpensesUseCase
+import app.cuentasclaras.domain.usecase.expenses.ObserveSyncFailuresUseCase
+import app.cuentasclaras.domain.usecase.expenses.RetrySyncUseCase
 import app.cuentasclaras.domain.usecase.groups.ObserveGroupUseCase
 import app.cuentasclaras.domain.usecase.groups.ObserveMembersUseCase
 import app.cuentasclaras.domain.usecase.groups.RefreshGroupUseCase
@@ -34,6 +36,8 @@ class ExpensesListViewModel @Inject constructor(
     observeExpenses: ObserveExpensesUseCase,
     observeGroup: ObserveGroupUseCase,
     observeMembers: ObserveMembersUseCase,
+    observeSyncFailures: ObserveSyncFailuresUseCase,
+    private val retrySyncUseCase: RetrySyncUseCase,
     refreshGroup: RefreshGroupUseCase,
     refreshMembers: RefreshMembersUseCase,
     savedStateHandle: SavedStateHandle,
@@ -61,8 +65,18 @@ class ExpensesListViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            observeSyncFailures(groupId).collect { failures ->
+                _state.update { it.copy(syncFailures = failures) }
+            }
+        }
+        viewModelScope.launch {
             refreshGroup(groupId)
             refreshMembers(groupId)
         }
+    }
+
+    /** Devuelve al outbox los cambios fallidos y relanza su sincronización. */
+    fun retrySync() {
+        viewModelScope.launch { retrySyncUseCase(groupId) }
     }
 }

@@ -22,6 +22,15 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+
+    sourceSets {
+        test {
+            // El contrato OpenAPI es la fuente de verdad del backend: se expone
+            // como recurso de test para que `OpenApiContractTest` lo valide sin
+            // duplicar el YAML dentro del módulo.
+            resources.srcDir rootProject.file('../docs/api')
+        }
+    }
 }
 
 dependencies {
@@ -41,4 +50,5 @@ dependencies {
     testImplementation libs.okhttp.mockwebserver
     testImplementation libs.kotlinx.coroutines.test
     testImplementation libs.kotlinx.serialization.json
+    testImplementation libs.snakeyaml
 }

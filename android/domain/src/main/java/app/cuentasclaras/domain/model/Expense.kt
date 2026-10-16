@@ -38,6 +38,9 @@ data class ExpenseShare(
  * [expenseDate] es una fecha ISO (`yyyy-MM-dd`). `version` es el contador de
  * concurrencia optimista del backend: si se envía en una edición y no coincide,
  * la petición falla con 409.
+ *
+ * [pendingOperation] es la mutación optimista aún sin sincronizar (`CREATE` o
+ * `UPDATE`), o `null` si el gasto ya está confirmado por el servidor.
  */
 data class Expense(
     val id: String,
@@ -54,4 +57,5 @@ data class Expense(
     val createdAt: String? = null,
     val version: Long = 0,
     val shares: List<ExpenseShare> = emptyList(),
+    val pendingOperation: OutboxOperation? = null,
 )

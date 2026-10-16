@@ -1,0 +1,66 @@
+# Configuración de Detekt para el cliente Android de Cuentas Claras.
+# Se ejecuta con `./gradlew detekt` y en CI. Parte de la configuración por
+# defecto (`buildUponDefaultConfig = true`) y solo ajusta lo que no encaja con
+# un proyecto Compose + Coroutines.
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+complexity:
+  LongMethod:
+    # Las pantallas Compose son largas por naturaleza (una sola función que
+    # describe el layout completo).
+    threshold: 250
+  LongParameterList:
+    functionThreshold: 10
+    constructorThreshold: 12
+    ignoreDefaultParameters: true
+    ignoreDataClasses: true
+    ignoreAnnotatedParameter: ['Composable']
+  CyclomaticComplexMethod:
+    threshold: 20
+  TooManyFunctions:
+    thresholdInFiles: 30
+    thresholdInClasses: 25
+    thresholdInInterfaces: 20
+    thresholdInObjects: 25
+    thresholdInEnums: 10
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  MatchingDeclarationName:
+    # Los archivos agrupan varios DTOs/modelos de la misma feature.
+    active: false
+
+style:
+  MaxLineLength:
+    maxLineLength: 140
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: true
+  MagicNumber:
+    ignoreNumbers: ['-1', '0', '1', '2', '3', '15', '20', '30', '60', '100', '120', '145', '400', '401', '403', '404', '409', '422', '500', '599', '1000', '3600']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreEnums: true
+    ignoreAnnotated: ['Composable', 'Test']
+  ReturnCount:
+    # Se prefieren las guard clauses (early return) a anidar `if`.
+    max: 6
+
+performance:
+  SpreadOperator:
+    # Uso puntual en `konstrukt()` / vararg de Compose.
+    active: false
+
+exceptions:
+  SwallowedException:
+    # Rutas best-effort (limpiar tokens/caché): la excepción original no aporta.
+    active: false
+  TooGenericExceptionCaught:
+    active: false

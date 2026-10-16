@@ -42,7 +42,7 @@ class BalancesViewModelTest {
 
     private fun plan() = SettlementPlan(
         currency = "EUR",
-        algorithm = "MIN_EXACT",
+        algorithm = "EXACT",
         transactionCount = 1,
         steps = listOf(PairwiseDebt(fromUserId = "u-2", toUserId = "u-1", amountMinor = 1500)),
     )

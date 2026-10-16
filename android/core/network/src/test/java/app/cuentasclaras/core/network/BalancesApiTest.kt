@@ -82,7 +82,7 @@ class BalancesApiTest {
                 """
                 {
                   "currency": "EUR",
-                  "algorithm": "MIN_EXACT",
+                  "algorithm": "EXACT",
                   "transactionCount": 1,
                   "steps": [
                     {"fromUserId":"u-2","toUserId":"u-1","amountMinor":1500}
@@ -95,7 +95,7 @@ class BalancesApiTest {
         val result = safeApiCall(json) { api.settlementPlan("g-1") }
 
         val dto = (result as AppResult.Success).value
-        assertEquals("MIN_EXACT", dto.algorithm)
+        assertEquals("EXACT", dto.algorithm)
         assertEquals(1, dto.transactionCount)
         assertEquals("u-2", dto.steps.single().fromUserId)
         assertEquals("/api/v1/groups/g-1/settlement-plan", server.takeRequest().path)

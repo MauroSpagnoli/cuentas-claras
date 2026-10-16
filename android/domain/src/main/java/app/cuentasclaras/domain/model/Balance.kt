@@ -33,7 +33,7 @@ data class GroupBalances(
 
 /**
  * Plan de liquidación: el conjunto de transferencias que deja a todos los
- * miembros a cero. [algorithm] es el que usó el backend (`MIN_EXACT` o
+ * miembros a cero. [algorithm] es el que usó el backend (`EXACT` o
  * `GREEDY`) y [transactionCount] el número de transferencias del plan.
  */
 data class SettlementPlan(

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
 }
 
@@ -32,9 +33,12 @@ dependencies {
     implementation libs.androidx.security.crypto
     implementation libs.androidx.room.ktx
     implementation libs.androidx.paging.common
+    implementation libs.androidx.work.runtime.ktx
+    implementation libs.androidx.hilt.work
     implementation libs.kotlinx.coroutines.android
     implementation libs.hilt.android
     kapt libs.hilt.compiler
+    kapt libs.androidx.hilt.compiler
 
     testImplementation libs.junit
     testImplementation libs.kotlinx.coroutines.test
@@ -43,4 +47,5 @@ dependencies {
     testImplementation libs.robolectric
     testImplementation libs.androidx.test.core
     testImplementation libs.androidx.paging.testing
+    testImplementation libs.androidx.work.testing
 }

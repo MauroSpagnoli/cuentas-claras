@@ -5,6 +5,7 @@ import androidx.room.Room
 import app.cuentasclaras.core.database.CuentasClarasDatabase
 import app.cuentasclaras.core.database.dao.ExpenseDao
 import app.cuentasclaras.core.database.dao.GroupDao
+import app.cuentasclaras.core.database.dao.OutboxDao
 import app.cuentasclaras.core.database.dao.UserDao
 import app.cuentasclaras.core.database.migration.DATABASE_MIGRATIONS
 import dagger.Module
@@ -33,4 +34,7 @@ object DatabaseModule {
 
     @Provides
     fun provideExpenseDao(database: CuentasClarasDatabase): ExpenseDao = database.expenseDao()
+
+    @Provides
+    fun provideOutboxDao(database: CuentasClarasDatabase): OutboxDao = database.outboxDao()
 }

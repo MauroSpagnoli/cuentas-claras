@@ -198,6 +198,6 @@ class BalancesEndToEndTest {
         const val HOST = "10.0.2.2"
         const val PORT = 8080
         const val TIMEOUT_MILLIS = 3_000
-        val ALGORITHMS = setOf("MIN_EXACT", "GREEDY")
+        val ALGORITHMS = setOf("EXACT", "GREEDY")
     }
 }

@@ -44,6 +44,7 @@ class AuthRepositoryImplTest {
     @Test
     fun `login persists tokens and current user`() = runTest {
         coEvery { api.login(any()) } returns Response.success(authTokensWithUser())
+        coEvery { userDao.clear() } just Runs
         coEvery { userDao.upsert(any()) } just Runs
 
         val result = repository.login("user@example.com", "secret123")
@@ -55,6 +56,18 @@ class AuthRepositoryImplTest {
         val capturedUser = slot<UserEntity>()
         coVerify { userDao.upsert(capture(capturedUser)) }
         assertEquals("u-1", capturedUser.captured.id)
+    }
+
+    @Test
+    fun `login discards the previous current user`() = runTest {
+        coEvery { api.login(any()) } returns Response.success(authTokensWithUser())
+        coEvery { userDao.clear() } just Runs
+        coEvery { userDao.upsert(any()) } just Runs
+
+        repository.login("user@example.com", "secret123")
+
+        // `current_user` es de una sola fila: el login anterior se descarta.
+        coVerify(exactly = 1) { userDao.clear() }
     }
 
     @Test

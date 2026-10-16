@@ -6,4 +6,16 @@ plugins {
     alias(libs.plugins.kotlin.kapt) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.detekt) apply false
+}
+
+// Detekt se aplica a todos los módulos Kotlin del proyecto Android.
+subprojects {
+    apply plugin: 'io.gitlab.arturbosch.detekt'
+
+    detekt {
+        buildUponDefaultConfig = true
+        config.setFrom(rootProject.files('detekt.yml'))
+        parallel = true
+    }
 }

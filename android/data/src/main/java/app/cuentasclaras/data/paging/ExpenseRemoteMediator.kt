@@ -59,12 +59,18 @@ class ExpenseRemoteMediator(
                     val page = result.value
                     database.withTransaction {
                         val dao = database.expenseDao()
+                        // Las escrituras optimistas que aún no han llegado al
+                        // servidor no se pisan: ni se borran al refrescar ni se
+                        // sobrescriben con la versión remota (que las ignora
+                        // mientras el outbox no las envíe).
+                        val pendingIds = dao.pendingExpenseIds(groupId)
+                        val remote = page.items.filterNot { it.id in pendingIds }
                         if (loadType == LoadType.REFRESH) {
-                            dao.clearSharesOfGroup(groupId)
-                            dao.clearExpenses(groupId)
+                            dao.clearSharesOfSyncedExpenses(groupId)
+                            dao.deleteSyncedExpenses(groupId)
                         }
-                        dao.upsertAll(page.items.map { it.toEntity() })
-                        val shares = page.items.flatMap { it.toShareEntities() }
+                        dao.upsertAll(remote.map { it.toEntity() })
+                        val shares = remote.flatMap { it.toShareEntities() }
                         if (shares.isNotEmpty()) dao.upsertShares(shares)
                         dao.upsertSyncState(
                             ExpenseSyncStateEntity(

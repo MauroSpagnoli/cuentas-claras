@@ -5,6 +5,14 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+// Firma del release. El fichero `keystore.properties` está en .gitignore: en CI
+// se genera a partir de secrets (ver .github/workflows/release.yml).
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace 'app.cuentasclaras'
     compileSdk 34
@@ -18,6 +26,17 @@ android {
         testInstrumentationRunner 'app.cuentasclaras.HiltTestRunner'
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // Emulador Android -> host local (backend Spring Boot en el puerto 8080).
@@ -27,6 +46,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField 'String', 'API_BASE_URL', '"https://api.cuentas-claras.app/api/v1/"'
+            // Solo se firma si hay keystore (CI); en local queda sin firmar.
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
@@ -65,6 +88,10 @@ dependencies {
     implementation project(':core:common')
     implementation project(':core:network')
     implementation project(':core:designsystem')
+
+    implementation libs.androidx.work.runtime.ktx
+    implementation libs.androidx.hilt.work
+    kapt libs.androidx.hilt.compiler
 
     implementation platform(libs.compose.bom)
     implementation libs.androidx.ui
